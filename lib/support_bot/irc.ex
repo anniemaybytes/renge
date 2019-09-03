@@ -64,7 +64,7 @@ defmodule SupportBot.IRC do
       match "!unqueue :pos", :force_unqueue, match_group: "[0-9]+"
       match "!unqueue :nick", :force_unqueue, match_group: "[a-zA-Z][a-zA-Z0-9_-]+"
       enforce :has_staff_vhost do
-        match "!reenable :user([a-zA-Z][a-zA-Z0-9_-]+) :reason(.+)", :staff_reenable_handler, async: true
+        match "!reenable :user([a-zA-Z0-9_-]+) :reason(.+)", :staff_reenable_handler, async: true
       end
       match "!queue", :disp_queue
     end
@@ -80,7 +80,7 @@ defmodule SupportBot.IRC do
     end
 
     enforce :has_staff_vhost do
-      match "!reenable :user", :staff_reenable_handler, match_group: "[a-zA-Z][a-zA-Z0-9_-]+", async: true
+      match "!reenable :user", :staff_reenable_handler, match_group: "[a-zA-Z0-9_-]+", async: true
       match "!reload", :module_reloader
       match "!version", :version_disp
     end
