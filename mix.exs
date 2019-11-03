@@ -20,7 +20,7 @@ defmodule SupportBot.Mixfile do
   defp deps do
     [
       {:kaguya, "~> 0.6.5"},
-      {:httpoison, "~> 0.9.0"},
+      {:httpoison, "~> 1.6.1"},
       {:timex, "~> 1.0"},
       {:poison, "~> 2.0"}
     ]
