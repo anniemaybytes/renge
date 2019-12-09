@@ -443,7 +443,11 @@ defmodule SupportBot.IRC do
         r -> "#{location}/#{URI.encode(user)}/staff?authKey=#{key}&enabler=#{enabler}&reason=#{URI.encode(r)}"
       end
     case HTTPoison.post(url, {:form, []}, [], [timeout: 10000]) do
-      {:ok, resp} -> resp.body |> Poison.Parser.parse!
+      {:ok, resp} ->
+        case resp.body |> Poison.Parser.parse do
+          {:ok, r} -> r
+          err -> err
+        end
       err -> err
     end
   end
@@ -461,10 +465,14 @@ defmodule SupportBot.IRC do
     location = Application.get_env(:support_bot, :user_reenable_api)
     url = "#{location}/#{user}/user?authKey=#{key}"
     result =
-      case HTTPoison.post(url, {:form, []}, [], [timeout: 10000]) do
-        {:ok, resp} -> resp.body |> Poison.Parser.parse!
-        err -> err
-      end
+    case HTTPoison.post(url, {:form, []}, [], [timeout: 10000]) do
+      {:ok, resp} ->
+        case resp.body |> Poison.Parser.parse do
+          {:ok, r} -> r
+          err -> err
+        end
+      err -> err
+    end
     case result do
       {:error, _reason} -> reply "Your account could not be reenabled for technical reasons. Please try again."
       %{"success" => true} -> reply "User reenabled! Welcome back #{user}, to prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle. Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules"
