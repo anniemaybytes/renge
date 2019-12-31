@@ -74,7 +74,7 @@ defmodule SupportBot.SupportSession do
     File.write!("#{Application.get_env(:support_bot, :log_path)}/#{file_name}", log_string)
 
     password = random_str(16)
-    body = Poison.encode!(%{"key" => password, "body" => log_string, "name" => file_name})
+    body = Poison.encode!(%{"passphrase" => password, "body" => log_string, "name" => file_name})
     try do
       key = Application.get_env(:support_bot, :auth_key)
       paste_path =
@@ -84,8 +84,9 @@ defmodule SupportBot.SupportSession do
         |> Map.fetch!("path")
 
       paste = "#{Application.get_env(:support_bot, :paste_fetch_url)}/#{paste_path}"
+      password = URI.encode_www_form(password)
       Kaguya.Util.sendPM(
-        "Support conversation in #{channel} between #{space_nick(user)} and #{space_nick(handler)} complete. A log can be found at #{paste} pw: #{password}",
+        "Support conversation in #{channel} between #{space_nick(user)} and #{space_nick(handler)} complete. A log can be found at #{paste}?passphrase=#{password}",
         Application.get_env(:support_bot, :log_chan)
       )
     rescue
