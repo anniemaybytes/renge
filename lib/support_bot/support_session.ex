@@ -74,11 +74,11 @@ defmodule SupportBot.SupportSession do
     File.write!("#{Application.get_env(:support_bot, :log_path)}/#{file_name}", log_string)
 
     password = random_str(16)
-    body = Poison.encode!(%{"passphrase" => password, "body" => log_string, "name" => file_name})
+    key = Application.get_env(:support_bot, :auth_key)
+    body = [{:authKey, key}, {:passphrase, password}, {:body, log_string}, {:name, file_name}]
     try do
-      key = Application.get_env(:support_bot, :auth_key)
       paste_path =
-        HTTPoison.post!("#{Application.get_env(:support_bot, :paste_create_url)}?authKey=#{key}", body)
+        HTTPoison.post!(Application.get_env(:support_bot, :paste_create_url), {:form, body}, [], [timeout: 10000])
         |> Map.fetch!(:body)
         |> Poison.decode!
         |> Map.fetch!("path")

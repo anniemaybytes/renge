@@ -437,12 +437,13 @@ defmodule SupportBot.IRC do
     key = Application.get_env(:support_bot, :auth_key)
     location = Application.get_env(:support_bot, :user_reenable_api)
 
-    url =
+    url = "#{location}/#{URI.encode(user)}/staff"
+    body =
       case reason do
-        nil -> "#{location}/#{URI.encode(user)}/staff?authKey=#{key}&enabler=#{enabler}"
-        r -> "#{location}/#{URI.encode(user)}/staff?authKey=#{key}&enabler=#{enabler}&reason=#{URI.encode(r)}"
+        nil -> [{:enabler, enabler}, {:authKey, key}]
+        r -> [{:enabler, enabler}, {:reason, r}, {:authKey, key}]
       end
-    case HTTPoison.post(url, {:form, []}, [], [timeout: 10000]) do
+    case HTTPoison.post(url, {:form, body}, [], [timeout: 10000]) do
       {:ok, resp} ->
         case resp.body |> Poison.Parser.parse do
           {:ok, r} -> r
@@ -463,9 +464,9 @@ defmodule SupportBot.IRC do
       end
     key = Application.get_env(:support_bot, :auth_key)
     location = Application.get_env(:support_bot, :user_reenable_api)
-    url = "#{location}/#{user}/user?authKey=#{key}"
+    url = "#{location}/#{user}/user"
     result =
-    case HTTPoison.post(url, {:form, []}, [], [timeout: 10000]) do
+    case HTTPoison.post(url, {:form, [{:authKey, key}]}, [], [timeout: 10000]) do
       {:ok, resp} ->
         case resp.body |> Poison.Parser.parse do
           {:ok, r} -> r
