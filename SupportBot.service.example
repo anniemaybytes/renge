@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Environment="HOME=/opt/SupportBot"
-WorkingDirectory=/optSupportBot
+WorkingDirectory=/opt/SupportBot
 ExecStartPre=/usr/bin/mix deps.get
 ExecStartPre=/usr/bin/mix compile
 ExecStart=/usr/bin/mix run --no-halt
