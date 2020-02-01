@@ -8,14 +8,14 @@ platform:
 
 steps:
     -   name: compile
-        image: elixir:1.9.4
+        image: elixir
         commands:
             - touch config/config.secret.exs # need included file to be present, even if empty
             - mix local.hex --force
             - mix local.rebar --force
             - MIX_ENV=test mix do deps.get --only test, deps.compile, compile
     -   name: test
-        image: elixir:1.9.4
+        image: elixir
         commands:
             - mix local.hex --force
             - mix local.rebar --force
