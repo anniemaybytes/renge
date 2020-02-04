@@ -355,7 +355,7 @@ defmodule SupportBot.IRC do
       |> Enum.with_index
       |> Enum.map(fn {{user, msg, time, _ip}, i} ->
         now = Timex.now()
-        hours = Timex.diff(time, now, :hours)
+        hours = Timex.diff(now, time, :hours)
         nt = Timex.subtract(now, Timex.Duration.from_seconds(hours * 60 * 60))
         minutes = Timex.diff(nt, time, :minutes)
         td =

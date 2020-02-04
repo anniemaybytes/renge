@@ -14,15 +14,9 @@ steps:
             - mix local.hex --force
             - mix local.rebar --force
             - MIX_ENV=test mix do deps.get --only test, deps.compile, compile
-    -   name: ircd
-        image: inspircd/inspircd-docker
-        environment:
-            INSP_OPER_PASSWORD_HASH: cNkbWRWn\$MhSTITMbrCxp0neoDqL66/MSI2C+oxIa4Ux6DXb5R4Q
-        detach: true    
     -   name: test
         image: elixir
         commands:
-            - sleep 5 # wait for ircd to start accepting connections
             - mix local.hex --force
             - mix local.rebar --force
             - mix test --color
@@ -31,3 +25,11 @@ trigger:
     branch:
         - master
         - drone
+
+services:
+    - name: ircd
+      image: inspircd/inspircd-docker
+      environment:
+        INSP_OPER_PASSWORD_HASH: cNkbWRWn\$MhSTITMbrCxp0neoDqL66/MSI2C+oxIa4Ux6DXb5R4Q
+        INSP_ENABLE_DNSBL: no
+        INSP_OPER_SSLONLY: no
