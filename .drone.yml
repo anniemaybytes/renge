@@ -22,6 +22,7 @@ steps:
     -   name: test
         image: elixir
         commands:
+            - sleep 5 # wait for ircd to start accepting connections
             - mix local.hex --force
             - mix local.rebar --force
             - mix test --color
