@@ -18,7 +18,7 @@ defmodule SupportBot.Queue do
       nil ->
         ip = SupportBot.Util.get378(nick) |> String.split(" ") |> List.last
         Kaguya.Util.sendPM("User #{nick} requires support: #{message}", Application.get_env(:support_bot, :queue_announce_chan))
-        {:reply, :ok, [{nick, message, Timex.Date.now, ip}|state]}
+        {:reply, :ok, [{nick, message, Timex.now(), ip}|state]}
       _ -> {:reply, :dupe, state}
     end
   end
@@ -69,7 +69,7 @@ defmodule SupportBot.Queue do
         {:reply, nil, state}
       _ ->
         {new_state, [user]} = Enum.split_with(state, fn {n, _m, _t, _i} -> String.downcase(n) != String.downcase(nick) end)
-        {:reply, nick, new_state}
+        {:reply, user, new_state}
     end
   end
 

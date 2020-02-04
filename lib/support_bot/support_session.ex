@@ -4,7 +4,7 @@ defmodule SupportBot.SupportSession do
   use GenServer
 
   def start_link({channel, user, handler, reason}, opts \\ []) do
-    start_time = Timex.Date.universal
+    start_time = Timex.now()
     GenServer.start_link(__MODULE__, {channel, [], true, start_time, user, handler, reason}, opts)
   end
 
@@ -45,7 +45,7 @@ defmodule SupportBot.SupportSession do
       Application.get_env(:support_bot, :log_chan)
     )
 
-    time = Timex.Date.universal
+    time = Timex.now()
     logged_message = {time, message}
     {:noreply, {channel, [logged_message|log], store_log, start_time, user, handler, color, reason}}
   end
@@ -68,7 +68,7 @@ defmodule SupportBot.SupportSession do
       end
     end)
 
-    unix_time = Timex.Date.now(:secs)
+    unix_time = Timex.epoch() |> Timex.to_unix
     file_name = "#{channel} #{unix_time} #{user} #{handler}.log"
     log_string = serialize_log(log, user, handler, start_time, channel, reason)
     File.write!("#{Application.get_env(:support_bot, :log_path)}/#{file_name}", log_string)

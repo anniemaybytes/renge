@@ -50,27 +50,27 @@ defmodule SupportBot.Util do
   end
 
   def serialize_line({time, %{command: "JOIN"} = message}) do
-    {:ok, time_str} = Timex.DateFormat.format(time, "%H:%M:%S", :strftime)
+    {:ok, time_str} = Timex.Format.DateTime.Formatter.format(time, "%H:%M:%S", :strftime)
     "[#{time_str}] #{message.user.nick} has joined the channel."
   end
 
   def serialize_line({time, %{command: "PART"} = message}) do
-    {:ok, time_str} = Timex.DateFormat.format(time, "%H:%M:%S", :strftime)
+    {:ok, time_str} = Timex.Format.DateTime.Formatter.format(time, "%H:%M:%S", :strftime)
     "[#{time_str}] #{message.user.nick} has left the channel."
   end
 
   def serialize_line({time, %{command: "QUIT"} = message}) do
-    {:ok, time_str} = Timex.DateFormat.format(time, "%H:%M:%S", :strftime)
+    {:ok, time_str} = Timex.Format.DateTime.Formatter.format(time, "%H:%M:%S", :strftime)
     "[#{time_str}] #{message.user.nick} has quit."
   end
 
   def serialize_line({time, %{command: "NICK"} = message}) do
-    {:ok, time_str} = Timex.DateFormat.format(time, "%H:%M:%S", :strftime)
+    {:ok, time_str} = Timex.Format.DateTime.Formatter.format(time, "%H:%M:%S", :strftime)
     "[#{time_str}] #{message.user.nick} has changed nick to #{message.trailing}."
   end
 
   def serialize_line({time, message}) do
-    {:ok, time_str} = Timex.DateFormat.format(time, "%H:%M:%S", :strftime)
+    {:ok, time_str} = Timex.Format.DateTime.Formatter.format(time, "%H:%M:%S", :strftime)
     "[#{time_str}] #{message.user.nick}: #{message.trailing}"
   end
 
@@ -79,7 +79,7 @@ defmodule SupportBot.Util do
       log
       |> Enum.map(&serialize_line/1)
       |> Enum.reverse
-    {:ok, time_str} = Timex.DateFormat.format(time, "%a, %b %d %Y %H:%M:%S UCT", :strftime)
+    {:ok, time_str} = Timex.Format.DateTime.Formatter.format(time, "%a, %b %d %Y %H:%M:%S UCT", :strftime)
     [
       "Log of support conversation between #{user} and #{handler} in #{channel}. Reason: #{reason}",
       "Conversation start date: #{time_str}"

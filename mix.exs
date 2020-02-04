@@ -12,7 +12,7 @@ defmodule SupportBot.Mixfile do
 
   def application do
     [
-      applications: [:logger, :httpoison, :kaguya],
+      applications: [:logger, :httpoison, :kaguya, :tzdata],
       mod: {SupportBot, []}
     ]
   end
@@ -20,9 +20,9 @@ defmodule SupportBot.Mixfile do
   defp deps do
     [
       {:kaguya, "~> 0.6.5"},
-      {:httpoison, "~> 1.6.1"},
-      {:timex, "~> 1.0"},
-      {:poison, "~> 2.0"}
+      {:httpoison, "~> 1.6"},
+      {:timex, "~> 3.0"},
+      {:poison, "~> 4.0"}
     ]
   end
 end

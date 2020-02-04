@@ -354,10 +354,10 @@ defmodule SupportBot.IRC do
       |> Enum.reverse
       |> Enum.with_index
       |> Enum.map(fn {{user, msg, time, _ip}, i} ->
-        now = Timex.Date.now
-        hours = Timex.Date.diff(time, now, :hours)
-        nt = Timex.Date.subtract(now, {0, hours * 60 * 60, 0})
-        minutes = Timex.Date.diff(time, nt, :mins)
+        now = Timex.now()
+        hours = Timex.diff(time, now, :hours)
+        nt = Timex.subtract(now, Timex.Duration.from_seconds(hours * 60 * 60))
+        minutes = Timex.diff(nt, time, :minutes)
         td =
           case {hours, minutes} do
             {0, 0} -> "just now"
@@ -445,11 +445,11 @@ defmodule SupportBot.IRC do
       end
     case HTTPoison.post(url, {:form, body}, [], [timeout: 10000]) do
       {:ok, resp} ->
-        case resp.body |> Poison.Parser.parse do
-          {:ok, r} -> r
-          err -> err
+        try do
+          Poison.Parser.parse!(resp.body, %{})
+        rescue
+          e in ParseError -> e
         end
-      err -> err
     end
   end
 
@@ -468,12 +468,12 @@ defmodule SupportBot.IRC do
     result =
     case HTTPoison.post(url, {:form, [{:authKey, key}]}, [], [timeout: 10000]) do
       {:ok, resp} ->
-        case resp.body |> Poison.Parser.parse do
-          {:ok, r} -> r
-          err -> err
+        try do
+          Poison.Parser.parse!(resp.body, %{})
+        rescue
+          e in ParseError -> e
         end
-      err -> err
-    end
+    end  
     case result do
       {:error, _reason} -> reply "Your account could not be reenabled for technical reasons. Please try again."
       %{"success" => true} -> reply "User reenabled! Welcome back #{user}, to prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle. Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules"
