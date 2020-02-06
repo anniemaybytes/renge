@@ -310,7 +310,7 @@ defmodule SupportBot.IRC do
     end
   end
 
-  defp begin_support_session(user, handler, chan, reason, announce \\ true, ip \\ "N/A") do
+  defp begin_support_session(user, handler, chan, reason, announce, ip \\ "N/A") do
     if announce do
       if GenServer.call(SupportBot.Queue, :length) > 0 do
         for us_chan <- Application.get_env(:support_bot, :user_support_chans) do
