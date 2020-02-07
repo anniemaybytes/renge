@@ -330,10 +330,7 @@ defmodule SupportBot.IRC do
     )
 
     SupportBot.Util.sapart(user, hd(Application.get_env(:support_bot, :user_support_chans)))
-    {:ok, _pid} = Supervisor.start_child(
-      SupportBot.SupportSessionSup,
-      [{chan, user, handler, reason}, [name: String.to_atom(chan)]]
-    )
+    {:ok, _pid} = SupportBot.SupportSessionSup.start_child({chan, user, handler, reason}, [name: String.to_atom(chan)])
   end
 
   defh join_support_chans do

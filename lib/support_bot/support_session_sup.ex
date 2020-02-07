@@ -1,14 +1,20 @@
 defmodule SupportBot.SupportSessionSup do
-  use Supervisor
+  use DynamicSupervisor
 
   def start_link(opts \\ []) do
-    Supervisor.start_link(__MODULE__, :ok, opts)
+    DynamicSupervisor.start_link(__MODULE__, :ok, opts)
+  end
+
+  def start_child({chan, user, handler, reason}, opts \\ []) do
+    spec = %{
+      id: SupportBot.SupportSession,
+      start: {SupportBot.SupportSession, :start_link, [{chan, user, handler, reason}, opts]},
+      restart: :temporary,
+    }
+    DynamicSupervisor.start_child(__MODULE__, spec)
   end
 
   def init(:ok) do
-    children = [
-      worker(SupportBot.SupportSession, [], restart: :temporary)
-    ]
-    supervise(children, strategy: :simple_one_for_one)
+    DynamicSupervisor.init(strategy: :one_for_one)
   end
 end

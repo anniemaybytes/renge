@@ -26,9 +26,9 @@ First, you'll need to install Elixir:
 
 Running is very simple. It is recommended to update dependencies and re-compile on every run. Manual steps:
 ```
-mix deps.get
-mix compile
-mix run --no-halt
+$ mix deps.get
+$ mix compile
+$ mix run --no-halt
 ```
 
 Example systemd unit file:
