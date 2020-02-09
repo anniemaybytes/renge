@@ -1,0 +1,1 @@
+defmodule(SupportBot.AlphanumId, do: use(Puid, bits: 92, length: 16, charset: :alphanum))

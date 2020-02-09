@@ -43,12 +43,6 @@ defmodule SupportBot.Util do
     |> Enum.join("\u200B")
   end
 
-  def random_str(n) when is_integer n do
-    :crypto.strong_rand_bytes(n)
-    |> :base64.encode_to_string
-    |> to_string
-  end
-
   def serialize_line({time, %{command: "JOIN"} = message}) do
     {:ok, time_str} = Timex.Format.DateTime.Formatter.format(time, "%H:%M:%S", :strftime)
     "[#{time_str}] #{message.user.nick} has joined the channel."

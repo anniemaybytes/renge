@@ -73,7 +73,7 @@ defmodule SupportBot.SupportSession do
     log_string = serialize_log(log, user, handler, start_time, channel, reason)
     File.write!("#{Application.get_env(:support_bot, :log_path)}/#{file_name}", log_string)
 
-    password = random_str(16)
+    password = SupportBot.AlphanumId.generate()
     key = Application.get_env(:support_bot, :auth_key)
     body = [{:authKey, key}, {:passphrase, password}, {:body, log_string}, {:name, file_name}]
     try do
