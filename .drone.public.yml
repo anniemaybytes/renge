@@ -1,0 +1,42 @@
+---
+kind: pipeline
+name: default
+type: docker
+
+platform:
+    os: linux
+    arch: amd64
+
+steps:
+    -   name: compile
+        image: elixir
+        commands:
+            - elixir -v
+            - cp config/config.drone.exs config/config.secret.exs
+            - mix local.hex --force
+            - mix local.rebar --force
+            - MIX_ENV=test mix do deps.get --only test, deps.compile, compile
+    -   name: test
+        image: elixir
+        commands:
+            - mix local.hex --force
+            - mix local.rebar --force
+            - mix test --color
+
+trigger:
+    branch:
+        - master
+        - drone
+
+services:
+    - name: ircd
+      image: inspircd/inspircd-docker
+      environment:
+        INSP_OPER_PASSWORD_HASH: cNkbWRWn\$MhSTITMbrCxp0neoDqL66/MSI2C+oxIa4Ux6DXb5R4Q
+        INSP_ENABLE_DNSBL: no
+        INSP_OPER_SSLONLY: no
+---
+kind: signature
+hmac: e75efec1f93d1c891ba9b6a40b51aeaecc81d8feb91c45364c705bc9628fcfc2
+
+...

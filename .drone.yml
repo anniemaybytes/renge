@@ -1,3 +1,4 @@
+---
 kind: pipeline
 name: default
 type: docker
@@ -7,24 +8,62 @@ platform:
     arch: amd64
 
 steps:
+    -   name: restore-cache
+        image: meltwater/drone-cache
+        failure: ignore
+        settings:
+            backend: "filesystem"
+            restore: true
+            cache_key: '{{ checksum "mix.exs" }}_{{ checksum "mix.lock" }}_default'
+            archive_format: "gzip"
+            mount:
+                - 'deps'
+                - '_build'
+        volumes:
+            -   name: drone-cache
+                path: /tmp/cache
+        depends_on: [ clone ]
     -   name: compile
         image: elixir
         commands:
-            - cp config/config.drone.exs config/config.secret.exs # need included file to be present
+            - elixir -v
+            - cp config/config.drone.exs config/config.secret.exs
             - mix local.hex --force
             - mix local.rebar --force
             - MIX_ENV=test mix do deps.get --only test, deps.compile, compile
+        depends_on: [ restore-cache ]
     -   name: test
         image: elixir
         commands:
             - mix local.hex --force
             - mix local.rebar --force
             - mix test --color
+        depends_on: [ compile ]
+    -   name: rebuild-cache
+        image: meltwater/drone-cache
+        failure: ignore
+        settings:
+            backend: "filesystem"
+            rebuild: true
+            cache_key: '{{ checksum "mix.exs" }}_{{ checksum "mix.lock" }}_default'
+            archive_format: "gzip"
+            mount:
+                - 'deps'
+                - '_build'
+        volumes:
+            -   name: drone-cache
+                path: /tmp/cache
+        depends_on: [ compile ]
 
 trigger:
     branch:
         - master
         - drone
+
+volumes:
+    -   name: drone-cache
+        host:
+            path: /var/lib/cache
 
 services:
     - name: ircd
@@ -33,3 +72,8 @@ services:
         INSP_OPER_PASSWORD_HASH: cNkbWRWn\$MhSTITMbrCxp0neoDqL66/MSI2C+oxIa4Ux6DXb5R4Q
         INSP_ENABLE_DNSBL: no
         INSP_OPER_SSLONLY: no
+---
+kind: signature
+hmac: 92b6d402dfe88ef4158dab7dcb8446685656143632b7c46fc99284138b70d817
+
+...
