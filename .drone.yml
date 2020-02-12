@@ -11,17 +11,23 @@ steps:
     -   name: restore-cache
         image: meltwater/drone-cache
         failure: ignore
+        environment:
+            AWS_ACCESS_KEY_ID:
+                from_secret: aws_access_key_id
+            AWS_SECRET_ACCESS_KEY:
+                from_secret: aws_secret_access_key
+            PLUGIN_PATH_STYLE: true
         settings:
-            backend: "filesystem"
+            endpoint:
+                from_secret: aws_endpoint
+            region: ab-1
+            bucket: drone-cache
             restore: true
             cache_key: '{{ checksum "mix.exs" }}_{{ checksum "mix.lock" }}_default'
-            archive_format: "gzip"
+            archive_format: gzip
             mount:
-                - 'deps'
-                - '_build'
-        volumes:
-            -   name: drone-cache
-                path: /tmp/cache
+                - ./deps
+                - ./_build
         depends_on: [ clone ]
     -   name: compile
         image: elixir
@@ -42,28 +48,29 @@ steps:
     -   name: rebuild-cache
         image: meltwater/drone-cache
         failure: ignore
+        environment:
+            AWS_ACCESS_KEY_ID:
+                from_secret: aws_access_key_id
+            AWS_SECRET_ACCESS_KEY:
+                from_secret: aws_secret_access_key
+            PLUGIN_PATH_STYLE: true
         settings:
-            backend: "filesystem"
+            endpoint:
+                from_secret: aws_endpoint
+            region: ab-1
+            bucket: drone-cache
             rebuild: true
             cache_key: '{{ checksum "mix.exs" }}_{{ checksum "mix.lock" }}_default'
-            archive_format: "gzip"
+            archive_format: gzip
             mount:
-                - 'deps'
-                - '_build'
-        volumes:
-            -   name: drone-cache
-                path: /tmp/cache
+                - ./deps
+                - ./_build
         depends_on: [ compile ]
 
 trigger:
     branch:
         - master
         - drone
-
-volumes:
-    -   name: drone-cache
-        host:
-            path: /var/lib/cache
 
 services:
     - name: ircd
@@ -74,6 +81,6 @@ services:
         INSP_OPER_SSLONLY: no
 ---
 kind: signature
-hmac: 92b6d402dfe88ef4158dab7dcb8446685656143632b7c46fc99284138b70d817
+hmac: 7ec8317cae3c3e78ae10808c33e1242a1278c6d986ff3da3a334b5f8d0041883
 
 ...
