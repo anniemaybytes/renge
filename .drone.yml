@@ -1,11 +1,6 @@
----
 kind: pipeline
 name: default
 type: docker
-
-platform:
-    os: linux
-    arch: amd64
 
 steps:
     -   name: restore-cache
@@ -23,7 +18,7 @@ steps:
             region: ab-1
             bucket: drone-cache
             restore: true
-            cache_key: '{{ checksum "mix.exs" }}_{{ checksum "mix.lock" }}_default'
+            cache_key: '{{ .Commit.Branch }}'
             archive_format: gzip
             mount:
                 - ./deps
@@ -60,17 +55,12 @@ steps:
             region: ab-1
             bucket: drone-cache
             rebuild: true
-            cache_key: '{{ checksum "mix.exs" }}_{{ checksum "mix.lock" }}_default'
+            cache_key: '{{ .Commit.Branch }}'
             archive_format: gzip
             mount:
                 - ./deps
                 - ./_build
         depends_on: [ compile ]
-
-trigger:
-    branch:
-        - master
-        - drone
 
 services:
     - name: ircd
@@ -79,8 +69,3 @@ services:
         INSP_OPER_PASSWORD_HASH: cNkbWRWn\$MhSTITMbrCxp0neoDqL66/MSI2C+oxIa4Ux6DXb5R4Q
         INSP_ENABLE_DNSBL: no
         INSP_OPER_SSLONLY: no
----
-kind: signature
-hmac: 7ec8317cae3c3e78ae10808c33e1242a1278c6d986ff3da3a334b5f8d0041883
-
-...

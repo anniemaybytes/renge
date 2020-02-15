@@ -1,11 +1,6 @@
----
 kind: pipeline
 name: default
 type: docker
-
-platform:
-    os: linux
-    arch: amd64
 
 steps:
     -   name: compile
@@ -35,8 +30,3 @@ services:
         INSP_OPER_PASSWORD_HASH: cNkbWRWn\$MhSTITMbrCxp0neoDqL66/MSI2C+oxIa4Ux6DXb5R4Q
         INSP_ENABLE_DNSBL: no
         INSP_OPER_SSLONLY: no
----
-kind: signature
-hmac: e75efec1f93d1c891ba9b6a40b51aeaecc81d8feb91c45364c705bc9628fcfc2
-
-...
