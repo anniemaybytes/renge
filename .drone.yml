@@ -4,7 +4,7 @@ type: docker
 
 steps:
     -   name: compile
-        image: elixir
+        image: elixir:alpine
         commands:
             - cp config/config.drone.exs config/config.secret.exs
             - mix local.hex --force
@@ -12,7 +12,7 @@ steps:
             - MIX_ENV=test mix do deps.get --only test, deps.compile, compile
         depends_on: [ clone ]
     -   name: test
-        image: elixir
+        image: elixir:alpine
         commands:
             - mix local.hex --force
             - mix local.rebar --force
@@ -39,7 +39,7 @@ type: docker
 
 steps:
     -   name: collect
-        image: elixir
+        image: elixir:alpine
         commands:
             - cp config/config.drone.exs config/config.secret.exs
             - mix local.hex --force
