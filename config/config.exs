@@ -25,4 +25,4 @@ config :support_bot,
   idle_alert_time: 300000,
   idle_kick_time: 900000
 
-import_config "config.secret.exs"
+if File.exists?("config/config.secret.exs"), do: import_config "config.secret.exs"

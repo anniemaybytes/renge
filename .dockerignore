@@ -1,0 +1,8 @@
+.drone.yml
+.gitignore
+.git
+config/config.secret.exs
+config/config.drone.exs
+build
+_deps
+logs

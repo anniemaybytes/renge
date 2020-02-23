@@ -51,6 +51,16 @@ User=SupportBot
 WantedBy=default.target
 ```
 
+Alternatively, you can also build/use a docker container instead:
+
+```sh
+docker build . -t supportbot
+# Pass in any additional parameters you may need, such as volume mounts into the docker run command
+docker run supportbot
+```
+
+The container expects config file to be placed in `/app/config/config.secret.exs`
+
 ## Configuration
 
-Copy example from `config/config.exs` to `config/config.secret.exs` and configure it as necessary.
+The file should be named `config.secret.exs` and is extension of `Mix.Config`. It can overwrite any values set by default at `config.exs`. For quick start you can just copy `config.exs` file, remove last `import_config` line and adapt it as necessary.

@@ -4,16 +4,10 @@ defmodule SupportBot.IRC do
   def module_init do
     try do
       :ets.new(:unqueued_users, [:set, :named_table, :public, {:read_concurrency, true}, {:write_concurrency, true}])
-      Agent.start_link(fn -> current_repo_version() end, name: VersionHandler)
     rescue
       # Table already exists.
       ArgumentError -> :ok
     end
-  end
-
-  def current_repo_version do
-    {hash, _code} = System.cmd "git", ["rev-parse", "HEAD"]
-    String.slice(hash, 0..6)
   end
 
   def in_staff_support(%{args: [chan]}) do
@@ -81,8 +75,6 @@ defmodule SupportBot.IRC do
 
     enforce :has_staff_vhost do
       match "!reenable :user", :staff_reenable_handler, match_group: "[a-zA-Z0-9_-]+", async: true
-      match "!reload", :module_reloader
-      match "!version", :version_disp
     end
 
     enforce [:has_non_staff_vhost, :in_user_support] do
@@ -186,20 +178,6 @@ defmodule SupportBot.IRC do
     Enum.find(Application.get_env(:support_bot, :support_session_chans), fn chan ->
       Process.whereis(String.to_atom(chan)) == nil
     end)
-  end
-
-  defh module_reloader do
-    IEx.Helpers.r(SupportBot.IRC)
-    IEx.Helpers.r(SupportBot.Queue)
-    IEx.Helpers.r(SupportBot.Util)
-    IEx.Helpers.r(SupportBot.SupportSession)
-    cv = current_repo_version()
-    reply "Code reloaded! Now running at commit #{cv}"
-    Agent.update(VersionHandler, fn _ov -> cv end)
-  end
-
-  defh version_disp do
-    reply "Currently running commit #{Agent.get(VersionHandler, fn cv -> cv end)}, repository at commit #{current_repo_version()}"
   end
 
   defh start_queue_timer(%{user: %{nick: user}, trailing: chan}) do
