@@ -15,4 +15,6 @@ COPY . .
 RUN mix compile && chmod -R 777 /.mix && \
     chmod -R 777 /app
 
+USER 1000:1000
+
 CMD [ "mix", "run", "--no-halt" ]
