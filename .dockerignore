@@ -2,7 +2,7 @@
 .gitignore
 .git
 config/config.secret.exs
-config/config.drone.exs
+.config.drone.exs
 build
 _deps
 logs

@@ -56,7 +56,7 @@ Alternatively, you can also build/use a docker container instead:
 ```sh
 docker build . -t supportbot
 # Pass in any additional parameters you may need, such as volume mounts into the docker run command
-docker run supportbot
+docker run supportbot -e ERL_COOKIE=foo
 ```
 
 The container expects config file to be placed in `/app/config/config.secret.exs`

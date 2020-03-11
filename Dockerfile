@@ -1,20 +1,37 @@
-FROM elixir:1.10.1-alpine
+FROM elixir:1.10.2-alpine AS builder
 
 WORKDIR /app
 
-RUN mkdir -p /.mix && ln -s /.mix /root/.mix
+ENV MIX_ENV prod
 
-COPY mix.exs .
-COPY mix.lock .
+RUN mix do local.hex --force, local.rebar --force
 
-RUN mix do local.hex --force, local.rebar --force && \
-    mix do deps.get, deps.compile
+COPY mix.* ./
+    
+RUN mix do deps.get, deps.compile
 
 COPY . .
 
-RUN mix compile && chmod -R 777 /.mix && \
-    chmod -R 777 /app
+RUN mix compile
+
+RUN export APP_VSN="$(grep 'version:' mix.exs | cut -d '"' -f2)" && \
+    mix distillery.release --warnings-as-errors --verbose && \
+    mkdir -p /build && \
+    cp _build/${MIX_ENV}/rel/support_bot/releases/${APP_VSN}/support_bot.tar.gz /build && \
+    cd /build && \
+    tar -xzf support_bot.tar.gz
+
+FROM alpine:latest
+
+WORKDIR /app
+
+RUN apk add --no-cache bash openssl-dev ca-certificates
+
+ENV REPLACE_OS_VARS=true \
+    RELEASE_MUTABLE_DIR=/tmp
+
+COPY --from=builder /build /app
 
 USER 1000:1000
 
-CMD [ "mix", "run", "--no-halt" ]
+CMD [ "/app/bin/support_bot", "foreground" ]

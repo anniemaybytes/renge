@@ -1,5 +1,7 @@
 use Mix.Config
 
+config :tzdata, :autoupdate, :disabled
+
 config :kaguya,
   server: "your.irc.server",
   port: 6666,
