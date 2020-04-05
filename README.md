@@ -17,22 +17,22 @@
 ## Installation
 
 First, you'll need to install Elixir:
-```
-# wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && dpkg -i erlang-solutions_2.0_all.deb
-# apt-get update
-# apt-get install esl-erlang
-# apt-get install elixir
+```sh
+wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && dpkg -i erlang-solutions_2.0_all.deb
+apt-get update
+apt-get install esl-erlang
+apt-get install elixir
 ```
 
 Running is very simple. It is recommended to update dependencies and re-compile on every run. Manual steps:
-```
-$ mix deps.get
-$ mix compile
-$ mix run --no-halt
+```sh
+mix deps.get
+mix compile
+mix run --no-halt
 ```
 
 Example systemd unit file:
-```
+```systemd
 [Unit]
 Description=SupportBot
 After=network.target
@@ -55,11 +55,9 @@ Alternatively, you can also build/use a docker container instead:
 
 ```sh
 docker build . -t supportbot
-# Pass in any additional parameters you may need, such as volume mounts into the docker run command
-docker run supportbot -e ERL_COOKIE=foo
+docker run -d --restart=always --user 1001:1001 -v ${PWD}/config.secret.exs:/app/config/config.secret.exs \
+-v ${PWD}/logs:/app/logs -e ERL_COOKIE=foo supportbot
 ```
-
-The container expects config file to be placed in `/app/config/config.secret.exs`
 
 ## Configuration
 
