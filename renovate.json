@@ -1,10 +1,11 @@
 {
-  "extends": [
-    "config:base"
-  ],
-  "ignorePresets": [
-    ":prHourlyLimit2"
-  ],
+  "extends": ["config:base"],
+  "labels": ["kind/deps"],
+  "vulnerabilityAlerts": {
+    "labels": ["kind/security"]
+  },
+  "stabilityDays": 3,
+  "semanticCommits": false,
   "ignorePaths": [],
   "ignoreDeps": [],
   "packageRules": [
