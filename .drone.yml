@@ -28,6 +28,11 @@ services:
         INSP_ENABLE_DNSBL: no
         INSP_OPER_SSLONLY: no
 
+trigger:
+    ref:
+        - refs/heads/master
+        - refs/pull/**
+        - refs/tags/**
 ---
 kind: pipeline
 name: docker

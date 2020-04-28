@@ -4,7 +4,7 @@
   "vulnerabilityAlerts": {
     "labels": ["kind/security"]
   },
-  "stabilityDays": 3,
+  "stabilityDays": 1,
   "semanticCommits": false,
   "ignorePaths": [],
   "ignoreDeps": [],

@@ -68,7 +68,7 @@ defmodule SupportBot.SupportSession do
       end
     end)
 
-    unix_time = Timex.epoch() |> Timex.to_unix
+    unix_time = Timex.now() |> Timex.to_unix
     file_name = "#{channel} #{unix_time} #{user} #{handler}.log"
     log_string = serialize_log(log, user, handler, start_time, channel, reason)
     File.write!("#{Application.get_env(:support_bot, :log_path)}/#{file_name}", log_string)

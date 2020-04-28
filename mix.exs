@@ -4,7 +4,7 @@ defmodule SupportBot.Mixfile do
   def project do
     [
      app: :support_bot,
-     version: "1.3.1",
+     version: "1.3.2",
      elixir: "~> 1.9.0",
      elixirc_options: [warnings_as_errors: true],
      build_embedded: Mix.env == :prod,
@@ -22,12 +22,12 @@ defmodule SupportBot.Mixfile do
 
   defp deps do
     [
-      {:kaguya, "~> 0.6.6"},
-      {:httpoison, "~> 1.6.2"},
-      {:timex, "~> 3.6.1"},
-      {:poison, "~> 4.0.1"},
-      {:puid, "~> 1.1.1"},
-      {:distillery, "~> 2.1.1"}
+      {:kaguya, "== 0.6.6"},
+      {:httpoison, "== 1.6.2"},
+      {:timex, "== 3.6.1"},
+      {:poison, "== 4.0.1"},
+      {:puid, "== 1.1.1"},
+      {:distillery, "== 2.1.1"}
     ]
   end
 end
