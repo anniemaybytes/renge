@@ -5,14 +5,14 @@ type: docker
 
 steps:
     -   name: compile
-        image: elixir:1.9.4-alpine
+        image: elixir:1.10.3-alpine
         commands:
             - mix local.hex --force
             - mix local.rebar --force
             - MIX_ENV=test mix do deps.get --only test, deps.compile, compile
         depends_on: [ clone ]
     -   name: test
-        image: elixir:1.9.4-alpine
+        image: elixir:1.10.3-alpine
         commands:
             - mix local.hex --force
             - mix local.rebar --force
@@ -33,6 +33,7 @@ trigger:
         - refs/heads/master
         - refs/pull/**
         - refs/tags/**
+
 ---
 kind: pipeline
 name: docker

@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v1.4.0
+### Changed
+- Updated dependencies
+- Removed manual application control
+- Allow running with Elixir 1.10
+
 ## v1.3.2
 ### Fixed
 - Zero unix time for support session log filename
