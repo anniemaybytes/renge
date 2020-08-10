@@ -23,6 +23,7 @@ steps:
 services:
     - name: ircd
       image: inspircd/inspircd-docker
+      pull: always
       environment:
         INSP_OPER_PASSWORD_HASH: cNkbWRWn\$MhSTITMbrCxp0neoDqL66/MSI2C+oxIa4Ux6DXb5R4Q
         INSP_ENABLE_DNSBL: no
@@ -45,6 +46,7 @@ platform:
 steps:
     -   name: build
         image: plugins/docker
+        pull: always
         privileged: true
         environment:
             DOCKER_REGISTRY:
