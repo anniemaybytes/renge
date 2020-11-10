@@ -8,10 +8,5 @@
   "semanticCommits": false,
   "ignorePaths": [],
   "ignoreDeps": [],
-  "packageRules": [
-    {
-      "packageNames": ["elixir"],
-      "allowedVersions": "<=1.9"
-    }
-  ]
+  "packageRules": []
 }

@@ -458,7 +458,7 @@ defmodule SupportBot.IRC do
         reply "Your account could not be automatically reenabled! You've been added to the support queue, please wait for assistance."
         profile_url = Application.get_env(:support_bot, :user_profile_location)
         rem_from_unqueued_users(nick)
-        GenServer.call(SupportBot.Queue, {:enqueue, {nick, "User #{user} ( #{profile_url}#{user} ) needs staff reenabling."}})
+        GenServer.call(SupportBot.Queue, {:enqueue, {nick, "User #{user} (#{profile_url}#{user}) needs staff reenabling."}})
     end
   end
 

@@ -2,13 +2,20 @@ defmodule SupportBot do
   use Application
 
   def start(_type, _args) do
-    import Supervisor.Spec
     require Logger
     Logger.log(:debug, "Starting SupportBot")
 
     children = [
-      supervisor(SupportBot.SupportSessionSup, [[name: SupportBot.SupportSessionSup]]),
-      worker(SupportBot.Queue, [[name: SupportBot.Queue]])
+      %{
+        id: SupportBot.SupportSessionSup,
+        start: {SupportBot.SupportSessionSup, :start_link, [[name: SupportBot.SupportSessionSup]]},
+        type: :supervisor
+      },
+      %{
+        id: SupportBot.Queue,
+        start: {SupportBot.Queue, :start_link, [[name: SupportBot.Queue]]},
+        type: :worker
+      }
     ]
 
     {:ok, _pid} = Supervisor.start_link(children, strategy: :one_for_one)
