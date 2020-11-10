@@ -6,6 +6,7 @@ type: docker
 steps:
     -   name: compile
         image: elixir:1.10.3-alpine
+        pull: always
         commands:
             - mix local.hex --force
             - mix local.rebar --force
