@@ -23,7 +23,7 @@ defmodule SupportBot.Mixfile do
     [
       {:kaguya, "== 0.6.6"},
       {:httpoison, "== 1.7.0"},
-      {:timex, "== 3.6.2"},
+      {:timex, "== 3.6.3"},
       {:poison, "== 4.0.1"},
       {:puid, "== 1.1.1"},
       {:distillery, "== 2.1.1"}
