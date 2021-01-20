@@ -22,7 +22,7 @@ defmodule SupportBot.Mixfile do
   defp deps do
     [
       {:kaguya, "== 0.6.6"},
-      {:httpoison, "== 1.7.0"},
+      {:httpoison, "== 1.8.0"},
       {:timex, "== 3.6.3"},
       {:poison, "== 4.0.1"},
       {:puid, "== 1.1.1"},
