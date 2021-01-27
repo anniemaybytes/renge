@@ -1,41 +1,40 @@
 ---
 kind: pipeline
-name: tests
+name: compliance
 type: docker
 
 steps:
-    -   name: compile
-        image: elixir:1.11.3-alpine
+    -   name: linter
+        image: node:14-alpine
         pull: always
         commands:
-            - mix local.hex --force
-            - mix local.rebar --force
-            - MIX_ENV=test mix do deps.get --only test, deps.compile, compile
-        depends_on: [ clone ]
-    -   name: test
-        image: elixir:1.11.3-alpine
-        commands:
-            - mix local.hex --force
-            - mix local.rebar --force
-            - cp .config.drone.exs config/config.secret.exs
-            - mix test --color
-        depends_on: [ compile ]
-
-services:
-    - name: ircd
-      image: inspircd/inspircd-docker
-      pull: always
-      environment:
-        INSP_OPER_PASSWORD_HASH: cNkbWRWn\$MhSTITMbrCxp0neoDqL66/MSI2C+oxIa4Ux6DXb5R4Q
-        INSP_ENABLE_DNSBL: no
-        INSP_OPER_SSLONLY: no
+            - yarn --frozen-lockfile --non-interactive
+            - yarn lint
+            - yarn build
 
 trigger:
     ref:
         - refs/heads/master
         - refs/pull/**
         - refs/tags/**
+---
+kind: pipeline
+name: tests
+type: docker
 
+steps:
+    -   name: tests
+        image: node:14-alpine
+        pull: always
+        commands:
+            - yarn --frozen-lockfile --non-interactive
+            - yarn test
+
+trigger:
+    ref:
+        - refs/heads/master
+        - refs/pull/**
+        - refs/tags/**
 ---
 kind: pipeline
 name: docker
@@ -60,7 +59,7 @@ steps:
             tags:
                 - "${DRONE_DEPLOY_TO}"
         commands:
-            - export PLUGIN_REPO=$DOCKER_REGISTRY/supportbot
+            - export PLUGIN_REPO=$DOCKER_REGISTRY/renge
             - /usr/local/bin/dockerd-entrypoint.sh /bin/drone-docker
 
 trigger:
@@ -68,4 +67,5 @@ trigger:
         - promote
 
 depends_on:
+    - compliance
     - tests

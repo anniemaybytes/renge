@@ -1,37 +1,17 @@
-FROM elixir:1.11.3-alpine AS builder
-
+FROM node:14-alpine AS base
 WORKDIR /app
 
-ENV MIX_ENV prod
-
-RUN mix do local.hex --force, local.rebar --force
-
-COPY mix.* ./
-    
-RUN mix do deps.get, deps.compile
-
+FROM base AS builder
+COPY package.json .
+COPY yarn.lock .
+RUN yarn --frozen-lockfile --non-interactive
 COPY . .
+# Build and trim node_modules dependencies
+RUN yarn build && mv yarnclean .yarnclean && yarn --frozen-lockfile --non-interactive --production
 
-RUN mix compile
-
-RUN export APP_VSN="$(grep 'version:' mix.exs | cut -d '"' -f2)" && \
-    mix distillery.release --warnings-as-errors --verbose && \
-    mkdir -p /build && \
-    cp _build/${MIX_ENV}/rel/support_bot/releases/${APP_VSN}/support_bot.tar.gz /build && \
-    cd /build && \
-    tar -xzf support_bot.tar.gz
-
-FROM alpine:latest
-
-WORKDIR /app
-
-RUN apk add --no-cache bash openssl-dev ca-certificates
-
-ENV REPLACE_OS_VARS=true \
-    RELEASE_MUTABLE_DIR=/tmp
-
-COPY --from=builder /build /app
-
+FROM base AS release
+ENV NODE_ENV production
+COPY --from=builder --chown=1000:1000 /app/dist ./dist
+COPY --from=builder --chown=1000:1000 /app/node_modules ./node_modules
 USER 1000:1000
-
-CMD [ "/app/bin/support_bot", "foreground" ]
+CMD [ "node", "dist/index.js" ]

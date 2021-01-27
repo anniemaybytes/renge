@@ -1,51 +1,52 @@
-# SupportBot
+# renge
+
+renge is our IRC support bot for AnimeBytes.
 
 ## Usage
 
-### Staff Usage
-* `!queue` - view all queued users
-* `!handle` - begin a support session with the next user in the queue
-* `!handle [0-9]+` - begin a support session with the user in the specified queue position
-* `!handle [nick]` - begin a support session with the user in the queue with the specified nick
-* `!end` - end a support session.
-* `!reenable <user> [reason]` - reenables user with optionally specified reason
+It supports the following commands for users in support channel:
 
-### User Usage
-* `!reenable <user>` - attempt automatic account reenable after inactivity prune
-* `!queue [reason]` - enter the support queue with the specific reason
+- `!reenable <user>` - attempt to automatically reenable an existing disabled user
+- `!queue <reason>` - join a support queue which staff will handle
+- `!unqueue` - leave the queue after you've joined it
+
+It supports the following commands for staff:
+
+- In staff channel:
+  - `!queue` - view the current state of the queue
+  - `!unqueue <position>` - remove someone from the queue based on their position in the queue
+  - `!handle [position]` - start a new support session with someone from the queue by position;
+    if none given, then first in the queue
+  - `!handle <nick> <reason>` - start a support session with someone who is not in the queue
+  - `!sessions` - view the currently active support sessions
+  - `!reenable <user> [reason]` - reenable an existing disabled user with staff permissions
+- In active support session
+  - `!reenable <user>` - reenable an existing disabled user with staff permissions
+
 
 ## Installation
 
-First, you'll need to install Elixir:
-```sh
-wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && dpkg -i erlang-solutions_2.0_all.deb
-apt-get update
-apt-get install esl-erlang
-apt-get install elixir
-```
+renge requires NodeJS version 14.15 or later and [Yarn package manager](https://classic.yarnpkg.com/).
 
-Running is very simple. It is recommended to update dependencies and re-compile on every run. Manual steps:
 ```sh
-mix deps.get
-mix compile
-mix run --no-halt
+yarn --frozen-lockfile && yarn build
+node dist/index.js
 ```
 
 Example systemd unit file:
+
 ```systemd
 [Unit]
-Description=SupportBot
+Description=renge
 After=network.target
 
 [Service]
-Environment="HOME=/opt/SupportBot"
-WorkingDirectory=/opt/SupportBot
-ExecStartPre=/usr/bin/mix deps.get
-ExecStartPre=/usr/bin/mix compile
-ExecStart=/usr/bin/mix run --no-halt
-RestartSec=30s
+Environment="LOG_LEVEL=info"
+WorkingDirectory=/opt/renge
+ExecStart=/usr/bin/node dist/index.js
+RestartSec=10s
 Restart=always
-User=SupportBot
+User=renge
 
 [Install]
 WantedBy=default.target
@@ -54,11 +55,63 @@ WantedBy=default.target
 Alternatively, you can also build/use a docker container instead:
 
 ```sh
-docker build . -t supportbot
-docker run -d --restart=always --user 1001:1001 -v ${PWD}/config.secret.exs:/app/config/config.secret.exs \
--v ${PWD}/logs:/app/logs -e ERL_COOKIE=foo supportbot
+docker build . -t renge
+docker run -d --restart=always -v ${PWD}/config.json:/app/config.json -v ${PWD}/logs:/app/logs -v ${PWD}/state.ldb:/app/state.ldb renge
 ```
 
 ## Configuration
 
-The file should be named `config.secret.exs` and is extension of `Mix.Config`. It can overwrite any values set by default at `config.exs`. For quick start you can just copy `config.exs` file, remove last `import_config` line and adapt it as necessary.
+Configuration is done via `config.json` file which should be in the working directory of the application with the following format:
+
+```json
+{
+  "state_db": "state.ldb",
+  "logs_dir": "logs",
+
+  "irc_server": "irc.example.com",
+  "irc_port": 6697,
+  "irc_use_ssl": true,
+  "irc_verify_ssl": true,
+  "irc_nick": "Renge",
+  "irc_realname": "Renge Miyauchi",
+  "irc_username": "Renge",
+  "oper_username": "",
+  "oper_pass": "",
+
+  "site_api_key": "",
+
+  "staff_channel": "#support-staff",
+  "user_channel": "#support",
+  "log_channel": "#support-logging",
+  "session_channels": ["#support-session1", "#support-session2", "#support-session3"],
+
+  "staff_hostmasks": ["*!*@*.Staff.Example"]
+}
+```
+
+- `state_db` - full path where LevelDB database with persistent state such as the queue and active sessions are stored
+- `logs_dir` - directory to store text logs of sessions after they are completed
+- `irc_server` - address of IRC server to connect to
+- `irc_port` - port of the IRC server
+- `irc_use_ssl` - whether to use SSL or not when connecting to IRC server
+- `irc_verify_ssl` - whether to verify the IRC server certificate
+- `irc_nick` - IRC nick to use for the bot
+- `irc_realname` - IRC realname to use for the bot
+- `irc_username` - IRC username to use for the bot
+- `oper_username` - username to use when authenticating as IRC operator
+- `oper_pass` - password to use when authenticating as IRC operator
+- `site_api_key` - api key to use with site (used when creating pastes or reenabling users)
+- `staff_channel` - IRC channel to listen for staff commands and announce newly queued users
+- `user_channel` - IRC channel to listen for user commands
+- `log_channel` - IRC channel where active support sessions are logged
+- `session_channels` - array of IRC channels where support sessions between a user and staff should be held
+- `staff_hostmasks` - array of IRC-style hostmask for irc users which should be considered staff 
+  ([ref](https://www.afternet.org/help/irc/hostmasks))
+
+Additionally the bot expects `LOG_LEVEL` environment variable to be set to one of:
+
+- `trace`
+- `debug` (default if not provided)
+- `info`
+- `warn`
+- `error`

@@ -8,5 +8,21 @@
   "semanticCommits": false,
   "ignorePaths": [],
   "ignoreDeps": [],
-  "packageRules": []
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 3am on tuesday"]
+  },
+  "node": {
+    "supportPolicy": ["lts_latest"]
+  },
+  "packageRules": [
+    {
+      "depTypeList": ["devDependencies"],
+      "extends": ["schedule:weekends"]
+    },
+    {
+      "packagePatterns": ["^@types/"],
+      "groupName": "type definitions"
+    }
+  ]
 }
