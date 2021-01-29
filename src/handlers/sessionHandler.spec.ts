@@ -7,10 +7,10 @@ import { LevelDB } from '../clients/leveldb';
 import { ABClient } from '../clients/animebytes';
 import * as reenable from '../commands/reenable';
 import * as utils from '../utils';
-import { SupportQueue } from './supportQueue';
-import { SupportSession } from './supportSession';
+import { QueueManager } from './queueManager';
+import { SessionHandler } from './sessionHandler';
 
-describe('SupportSession', () => {
+describe('SessionHandler', () => {
   let sandbox: SinonSandbox;
 
   beforeEach(() => {
@@ -20,6 +20,37 @@ describe('SupportSession', () => {
 
   afterEach(() => {
     sandbox.restore();
+  });
+
+  describe('initPreviousLogs', () => {
+    let mockDBGet: SinonStub;
+    beforeEach(() => {
+      mockDBGet = sandbox.stub(LevelDB, 'get');
+      sandbox.replace(SessionHandler, 'previousLogs', []);
+    });
+
+    it('Throws error if db get fails for session keys', async () => {
+      mockDBGet.throws('err');
+      try {
+        await SessionHandler.initPreviousLogs();
+      } catch (e) {
+        return;
+      }
+      expect.fail('Did not throw');
+    });
+
+    it('Sets previousLogs to empty array if NotFound', async () => {
+      SessionHandler.previousLogs = 'garbage' as any;
+      mockDBGet.throws({ type: 'NotFoundError' });
+      await SessionHandler.initPreviousLogs();
+      expect(SessionHandler.previousLogs).to.deep.equal([]);
+    });
+
+    it('Sets previousLogs to array from DB', async () => {
+      mockDBGet.resolves([{ user: 'user', staff: 'staff', time: '2000-01-01T00:00:00.000Z', paste: 'url' }]);
+      await SessionHandler.initPreviousLogs();
+      expect(SessionHandler.previousLogs).to.deep.equal([{ user: 'user', staff: 'staff', time: new Date('2000-01-01T00:00:00.000Z'), paste: 'url' }]);
+    });
   });
 
   describe('newSession', () => {
@@ -41,11 +72,11 @@ describe('SupportSession', () => {
       sandbox.stub(utils, 'randomIRCColor').returns('blue');
     });
 
-    it('returns a session with correct properties set from input', () => {
+    it('Returns a session with correct properties set from input', () => {
       const date = new Date();
       sandbox.useFakeTimers(date);
       const cb = () => '';
-      const session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', cb);
+      const session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', cb);
       expect(session.ircChannel).to.equal('chan');
       expect(session.staffHandlerNick).to.equal('staff');
       expect(session.userClientNick).to.equal('nick');
@@ -58,8 +89,8 @@ describe('SupportSession', () => {
       expect(session.cleanupCallbacks.has(cb)).to.be.true;
     });
 
-    it('creates appropriate listeners and saves their cleanup callbacks', () => {
-      const session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+    it('Creates appropriate listeners and saves their cleanup callbacks', () => {
+      const session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       assert.calledOnceWithExactly(listenForStaffReenableInChannelStub, 'chan');
       assert.calledOnce(addMsgHookStub);
       expect(addMsgHookStub.getCall(0).args[0]).to.equal('chan');
@@ -95,9 +126,9 @@ describe('SupportSession', () => {
       sandbox.replace(IRCClient, 'joined', false);
     });
 
-    it('returns a session with correct properties set from input', async () => {
+    it('Returns a session with correct properties set from input', async () => {
       const cb = () => '';
-      const session = await SupportSession.fromState(
+      const session = await SessionHandler.fromState(
         {
           chan: 'chan',
           staff: 'staff',
@@ -121,8 +152,8 @@ describe('SupportSession', () => {
       expect(session.cleanupCallbacks.has(cb)).to.be.true;
     });
 
-    it('creates appropriate listeners and saves their cleanup callbacks', async () => {
-      const session = await SupportSession.fromState(
+    it('Creates appropriate listeners and saves their cleanup callbacks', async () => {
+      const session = await SessionHandler.fromState(
         {
           chan: 'chan',
           staff: 'staff',
@@ -145,10 +176,10 @@ describe('SupportSession', () => {
       expect([1, 2, 3, 4, 5, 6, 7].every((fakeCb) => session.cleanupCallbacks.has(fakeCb as any))).to.be.true;
     });
 
-    it('logs a reconnect message if connected to IRC', async () => {
+    it('Logs a reconnect message if connected to IRC', async () => {
       sandbox.useFakeTimers(new Date('2001-01-31T03:12:26.123Z'));
       IRCClient.joined = true;
-      const session = await SupportSession.fromState(
+      const session = await SessionHandler.fromState(
         {
           chan: 'chan',
           staff: 'staff',
@@ -187,12 +218,12 @@ describe('SupportSession', () => {
       let msgHandler: any;
       let logStub: SinonStub;
       beforeEach(() => {
-        const session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+        const session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
         msgHandler = addMsgHookStub.getCall(0).args[2];
         logStub = sandbox.stub(session, 'logMsg');
       });
 
-      it('logs the message appropriately', async () => {
+      it('Logs the message appropriately', async () => {
         await msgHandler({ nick: 'nick', message: 'msg' });
         assert.calledOnceWithExactly(logStub, 'nick: msg');
       });
@@ -202,12 +233,12 @@ describe('SupportSession', () => {
       let disconnectHandler: any;
       let logStub: SinonStub;
       beforeEach(() => {
-        const session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+        const session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
         disconnectHandler = addDisconnectHandlerStub.getCall(0).args[0];
         logStub = sandbox.stub(session, 'logMsg');
       });
 
-      it('logs a disconnect message when called', async () => {
+      it('Logs a disconnect message when called', async () => {
         await disconnectHandler();
         assert.calledOnceWithExactly(logStub, '--- Disconnected from IRC ---');
       });
@@ -217,12 +248,12 @@ describe('SupportSession', () => {
       let connectHandler: any;
       let checkIfInProgressStub: SinonStub;
       beforeEach(() => {
-        const session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+        const session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
         connectHandler = addConnectHandlerStub.getCall(0).args[0];
         checkIfInProgressStub = sandbox.stub(session, 'checkIfInProgress');
       });
 
-      it('checks if session is in progress when called', async () => {
+      it('Checks if session is in progress when called', async () => {
         await connectHandler();
         assert.calledOnce(checkIfInProgressStub);
       });
@@ -232,45 +263,45 @@ describe('SupportSession', () => {
       let joinHandler: any;
       let logStub: SinonStub;
       beforeEach(() => {
-        const session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+        const session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
         joinHandler = addUserJoinHandlerStub.getCall(0).args[0];
         logStub = sandbox.stub(session, 'logMsg');
       });
 
-      it("logs a join message when relevant for session's channel", async () => {
+      it("Logs a join message when relevant for session's channel", async () => {
         await joinHandler('nick', 'chan');
         assert.calledOnceWithExactly(logStub, 'nick has joined.');
       });
 
-      it("does not log a join message when not relevant for session's channel", async () => {
+      it("Does not log a join message when not relevant for session's channel", async () => {
         await joinHandler('nick', 'randomchan');
         assert.notCalled(logStub);
       });
     });
 
     describe('renameHandler', () => {
-      let session: SupportSession;
+      let session: SessionHandler;
       let renameHandler: any;
       let logStub: SinonStub;
       beforeEach(() => {
-        session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+        session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
         renameHandler = addUserRenameHandlerStub.getCall(0).args[0];
         logStub = sandbox.stub(session, 'logMsg');
       });
 
-      it('updates staff nick if relevant and logs change', async () => {
+      it('Updates staff nick if relevant and logs change', async () => {
         await renameHandler('staff', 'newstaffnick');
         expect(session.staffHandlerNick).to.equal('newstaffnick');
         assert.calledOnceWithExactly(logStub, 'staff has changed their nick to newstaffnick.');
       });
 
-      it('updates user nick if relevant and logs change', async () => {
+      it('Updates user nick if relevant and logs change', async () => {
         await renameHandler('nick', 'newnick');
         expect(session.userClientNick).to.equal('newnick');
         assert.calledOnceWithExactly(logStub, 'nick has changed their nick to newnick.');
       });
 
-      it('does not log if nick change was not relevant to user or staff', async () => {
+      it('Does not log if nick change was not relevant to user or staff', async () => {
         await renameHandler('random1', 'random2');
         assert.notCalled(logStub);
       });
@@ -281,23 +312,23 @@ describe('SupportSession', () => {
       let logStub: SinonStub;
       let checkIfInProgressStub: SinonStub;
       beforeEach(() => {
-        const session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+        const session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
         leaveHandler = addUserLeaveHandlerStub.getCall(0).args[0];
         logStub = sandbox.stub(session, 'logMsg');
         checkIfInProgressStub = sandbox.stub(session, 'checkIfInProgress');
       });
 
-      it("logs a leave message when relevant for session's channel", async () => {
+      it("Logs a leave message when relevant for session's channel", async () => {
         await leaveHandler('nick', 'chan', 'parted');
         assert.calledOnceWithExactly(logStub, 'nick has left (parted).');
       });
 
-      it("checks if session is still in progress when relevant for session's channel", async () => {
+      it("Checks if session is still in progress when relevant for session's channel", async () => {
         await leaveHandler('nick', 'chan', 'parted');
         assert.calledOnce(checkIfInProgressStub);
       });
 
-      it("does nothing when not relevant for session's channel", async () => {
+      it("Does nothing when not relevant for session's channel", async () => {
         await leaveHandler('nick', 'randomchan', 'parted');
         assert.notCalled(logStub);
         assert.notCalled(checkIfInProgressStub);
@@ -306,14 +337,14 @@ describe('SupportSession', () => {
   });
 
   describe('startNewSession', () => {
-    let session: SupportSession;
+    let session: SessionHandler;
     let kickUserStub: SinonStub;
     let messageStub: SinonStub;
     let noticeStub: SinonStub;
     let joinUserToChannelStub: SinonStub;
     let logStub: SinonStub;
     beforeEach(() => {
-      session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+      session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       sandbox.stub(IRCClient, 'isMe').returns(false);
       kickUserStub = sandbox.stub(IRCClient, 'kickUserFromChannel');
       messageStub = sandbox.stub(IRCClient, 'message');
@@ -321,60 +352,60 @@ describe('SupportSession', () => {
       joinUserToChannelStub = sandbox.stub(IRCClient, 'joinUserToChannel');
       logStub = sandbox.stub(session, 'logMsg');
       sandbox.replace(IRCClient, 'channelState', {});
-      sandbox.replace(SupportQueue, 'queue', []);
+      sandbox.replace(QueueManager, 'queue', []);
     });
 
-    it('kicks existing users from session channel', async () => {
+    it('Kicks existing users from session channel', async () => {
       IRCClient.channelState = { chan: new Set(['someone']) };
       await session.startNewSession('ip', false);
       assert.calledWithExactly(kickUserStub.getCall(0), 'chan', 'someone');
     });
 
-    it('sends announcement in user support channel if announce', async () => {
+    it('Sends announcement in user support channel if announce', async () => {
       await session.startNewSession('ip', true);
       assert.calledOnceWithExactly(messageStub, IRCClient.userSupportChan, 'Now helping nick.');
     });
 
-    it('sends announcement with next in queue if exists in user support channel if announce', async () => {
-      SupportQueue.queue = [{ nick: 'nextnick' }] as any;
+    it('Sends announcement with next in queue if exists in user support channel if announce', async () => {
+      QueueManager.queue = [{ nick: 'nextnick' }] as any;
       await session.startNewSession('ip', true);
       assert.calledOnceWithExactly(messageStub, IRCClient.userSupportChan, 'Now helping nick. Next in queue: nextnick');
     });
 
-    it('does not send announcement if not announce', async () => {
+    it('Does not send announcement if not announce', async () => {
       await session.startNewSession('ip', false);
       assert.notCalled(messageStub);
     });
 
-    it('sends notice to user and staff when starting session', async () => {
+    it('Sends notice to user and staff when starting session', async () => {
       await session.startNewSession('ip', false);
       assert.calledWithExactly(noticeStub.getCall(0), 'staff', 'Starting support session for nick in chan, user IP: ip');
       assert.calledWithExactly(noticeStub.getCall(1), 'nick', 'nick, you are now being helped by staff in chan');
     });
 
-    it('kicks user from support channel', async () => {
+    it('Kicks user from support channel', async () => {
       await session.startNewSession('ip', false);
       assert.calledOnceWithExactly(kickUserStub, 'chan', 'nick');
     });
 
-    it('joins user and staff to support chanel', async () => {
+    it('Joins user and staff to support chanel', async () => {
       await session.startNewSession('ip', false);
       assert.calledWithExactly(joinUserToChannelStub.getCall(0), 'chan', 'staff');
       assert.calledWithExactly(joinUserToChannelStub.getCall(1), 'chan', 'nick');
     });
 
-    it('logs a beginning message', async () => {
+    it('Logs a beginning message', async () => {
       await session.startNewSession('ip', false);
       assert.calledOnceWithExactly(logStub, 'Beginning support conversation between nick and staff in chan. Reason: reason');
     });
 
-    it('sets session as started if complete', async () => {
+    it('Sets session as started if complete', async () => {
       expect(session.started).to.be.false;
       await session.startNewSession('ip', false);
       expect(session.started).to.be.true;
     });
 
-    it('throws an internal error if something goes wrong', async () => {
+    it('Throws an internal error if something goes wrong', async () => {
       joinUserToChannelStub.throws('err');
       try {
         await session.startNewSession('ip', false);
@@ -383,21 +414,21 @@ describe('SupportSession', () => {
         expect(session.started).to.be.false;
         return;
       }
-      expect.fail('did not throw');
+      expect.fail('Did not throw');
     });
   });
 
   describe('logMsg', () => {
-    let session: SupportSession;
+    let session: SessionHandler;
     let messageStub: SinonStub;
     let saveStub: SinonStub;
     beforeEach(() => {
-      session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+      session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       messageStub = sandbox.stub(IRCClient, 'message');
       saveStub = sandbox.stub(session, 'saveToState');
     });
 
-    it('adds to log and saves to state', async () => {
+    it('Adds to log and saves to state', async () => {
       const date = new Date('2001-09-12T18:58:43.123Z');
       sandbox.useFakeTimers(date);
       await session.logMsg('msg');
@@ -405,7 +436,7 @@ describe('SupportSession', () => {
       assert.calledOnce(saveStub);
     });
 
-    it('sends message to log channel with colored channel name and spacing nicks', async () => {
+    it('Sends message to log channel with colored channel name and spacing nicks', async () => {
       session.color = 'blue';
       await session.logMsg('nick: hi staff');
       assert.calledOnceWithExactly(
@@ -415,34 +446,34 @@ describe('SupportSession', () => {
       );
     });
 
-    it('does not throw if failure to send message to log channel', async () => {
+    it('Does not throw if failure to send message to log channel', async () => {
       messageStub.throws('err');
       await session.logMsg('msg');
     });
   });
 
   describe('checkIfInProgress', () => {
-    let session: SupportSession;
+    let session: SessionHandler;
     let endStub: SinonStub;
     beforeEach(() => {
-      session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+      session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       endStub = sandbox.stub(session, 'endSession');
       sandbox.replace(IRCClient, 'channelState', { chan: new Set([]) });
     });
 
-    it('ends session if staff is no longer in channel', async () => {
+    it('Ends session if staff is no longer in channel', async () => {
       IRCClient.channelState['chan'] = new Set(['nick']);
       await session.checkIfInProgress();
       assert.calledOnce(endStub);
     });
 
-    it('ends session if user is no longer in channel', async () => {
+    it('Ends session if user is no longer in channel', async () => {
       IRCClient.channelState['chan'] = new Set(['staff']);
       await session.checkIfInProgress();
       assert.calledOnce(endStub);
     });
 
-    it('does nothing if staff and user are still in channel', async () => {
+    it('Does nothing if staff and user are still in channel', async () => {
       IRCClient.channelState['chan'] = new Set(['nick', 'staff']);
       await session.checkIfInProgress();
       assert.notCalled(endStub);
@@ -450,22 +481,25 @@ describe('SupportSession', () => {
   });
 
   describe('endSession', () => {
-    let session: SupportSession;
+    let session: SessionHandler;
     let createPasteStub: SinonStub;
     let messageStub: SinonStub;
     let kickUserStub: SinonStub;
+    let putStub: SinonStub;
     let deleteStub: SinonStub;
     const fakeTime = new Date('2000-01-01T00:00:00.000Z');
     beforeEach(() => {
       sandbox.useFakeTimers(fakeTime);
-      session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+      session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       session.started = true;
       sandbox.stub(IRCClient, 'isMe').returns(false);
       kickUserStub = sandbox.stub(IRCClient, 'kickUserFromChannel');
       createPasteStub = sandbox.stub(ABClient, 'createPaste').resolves('pasteURL');
       messageStub = sandbox.stub(IRCClient, 'message');
+      putStub = sandbox.stub(LevelDB, 'put');
       deleteStub = sandbox.stub(LevelDB, 'delete');
-      sandbox.replace(SupportSession, 'logsDir', 'logs');
+      sandbox.replace(SessionHandler, 'logsDir', 'logs');
+      sandbox.replace(SessionHandler, 'previousLogs', []);
       mock({
         'logs/chan 2000-01-01T00:00:00.000Z nick staff.log': '',
       });
@@ -476,7 +510,7 @@ describe('SupportSession', () => {
       mock.restore();
     });
 
-    it('does nothing if already ended', async () => {
+    it('Does nothing if already ended', async () => {
       session.ended = true;
       await session.endSession();
       assert.notCalled(createPasteStub);
@@ -484,18 +518,18 @@ describe('SupportSession', () => {
       assert.notCalled(deleteStub);
     });
 
-    it('saves serialized log to disk', async () => {
+    it('Saves serialized log to disk', async () => {
       session.log = ['one', 'two'];
       await session.endSession();
       expect(await fs.promises.readFile('logs/chan 2000-01-01T00:00:00.000Z nick staff.log', 'utf8')).to.equal('one\ntwo');
     });
 
-    it('does not throw if writing to file fails', async () => {
+    it('Does not throw if writing to file fails', async () => {
       sandbox.stub(fs.promises, 'writeFile').throws('err');
       await session.endSession();
     });
 
-    it('uploads log as paste', async () => {
+    it('Uploads log as paste', async () => {
       session.log = ['one', 'two'];
       await session.endSession();
       assert.calledOnce(createPasteStub);
@@ -503,7 +537,24 @@ describe('SupportSession', () => {
       expect(createPasteStub.getCall(0).args[1]).to.equal('one\ntwo');
     });
 
-    it('sends end message with paste url in log channel', async () => {
+    it('Appends session logs to previousLogs and saves to state', async () => {
+      await session.endSession();
+      assert.calledOnceWithExactly(putStub, 'sessions::previousLogs', SessionHandler.previousLogs);
+      expect(SessionHandler.previousLogs).to.deep.equal([{ user: 'nick', staff: 'staff', time: fakeTime, paste: 'pasteURL' }]);
+    });
+
+    it('Trims previousLogs down to only 10 if necessary', async () => {
+      SessionHandler.previousLogs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as any;
+      await session.endSession();
+      expect(SessionHandler.previousLogs.length).to.equal(10);
+    });
+
+    it('Does not throw if writing to DB fails', async () => {
+      putStub.throws('err');
+      await session.endSession();
+    });
+
+    it('Sends end message with paste url in log channel', async () => {
       await session.endSession();
       assert.calledOnceWithExactly(
         messageStub,
@@ -512,7 +563,7 @@ describe('SupportSession', () => {
       );
     });
 
-    it('sends end message without paste url in log channel if paste upload failed', async () => {
+    it('Sends end message without paste url in log channel if paste upload failed', async () => {
       createPasteStub.throws('err');
       await session.endSession();
       assert.calledOnceWithExactly(
@@ -522,12 +573,12 @@ describe('SupportSession', () => {
       );
     });
 
-    it('does not throw if messaging log channel fails', async () => {
+    it('Does not throw if messaging log channel fails', async () => {
       messageStub.throws('err');
       await session.endSession();
     });
 
-    it('does not create log, paste, or send completion message if session never started', async () => {
+    it('Does not create log, paste, or send completion message if session never started', async () => {
       session.started = false;
       await session.endSession();
       expect(await fs.promises.readFile('logs/chan 2000-01-01T00:00:00.000Z nick staff.log', 'utf8')).to.equal('');
@@ -535,53 +586,53 @@ describe('SupportSession', () => {
       assert.notCalled(messageStub);
     });
 
-    it('kicks users from the support channel', async () => {
+    it('Kicks users from the support channel', async () => {
       IRCClient.channelState['chan'] = new Set(['randomnick']);
       await session.endSession();
       assert.calledOnceWithExactly(kickUserStub, 'chan', 'randomnick');
     });
 
-    it('calls cleanup callbacks', async () => {
+    it('Calls cleanup callbacks', async () => {
       const fakeCB = sandbox.stub();
       session.cleanupCallbacks = new Set([fakeCB]);
       await session.endSession();
       assert.calledOnce(fakeCB);
     });
 
-    it('does not throw if callback errors', async () => {
+    it('Does not throw if callback errors', async () => {
       const fakeCB = sandbox.stub();
       fakeCB.throws('err');
       session.cleanupCallbacks = new Set([fakeCB]);
       await session.endSession();
     });
 
-    it('deletes session from state in DB', async () => {
+    it('Deletes session from state in DB', async () => {
       await session.endSession();
       assert.calledOnceWithExactly(deleteStub, 'session::chan');
     });
 
-    it('does not throw if deleting from state fails', async () => {
+    it('Does not throw if deleting from state fails', async () => {
       deleteStub.throws('err');
       await session.endSession();
     });
 
-    it('sets the session as ended', async () => {
+    it('Sets the session as ended', async () => {
       await session.endSession();
       expect(session.ended).to.be.true;
     });
   });
 
   describe('saveToState', () => {
-    let session: SupportSession;
+    let session: SessionHandler;
     let dbPutStub: SinonStub;
     const fakeTime = new Date();
     beforeEach(() => {
       sandbox.useFakeTimers(fakeTime);
-      session = SupportSession.newSession('chan', 'staff', 'nick', 'reason', () => '');
+      session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       dbPutStub = sandbox.stub(LevelDB, 'put');
     });
 
-    it('saves to db with expected params', async () => {
+    it('Saves to DB with expected params', async () => {
       session.color = 'blue';
       await session.saveToState();
       assert.calledOnceWithExactly(dbPutStub, 'session::chan', {

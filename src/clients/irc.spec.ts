@@ -14,12 +14,12 @@ describe('IRCClient', () => {
   });
 
   describe('isMe', () => {
-    it('returns true if user is the bot', () => {
+    it('Returns true if user is the bot', () => {
       sandbox.replace(IRCClient, 'IRC_NICK', 'me');
       expect(IRCClient.isMe('Me')).to.be.true;
     });
 
-    it('returns false if user is not the bot', () => {
+    it('Returns false if user is not the bot', () => {
       sandbox.replace(IRCClient, 'IRC_NICK', 'me');
       expect(IRCClient.isMe('notMe')).to.be.false;
     });
@@ -43,7 +43,7 @@ describe('IRCClient', () => {
   });
 
   describe('mainChannels', () => {
-    it('returns an array with channels for support log, staff support, queue announce, and user support', () => {
+    it('Returns an array with channels for support log, staff support, queue announce, and user support', () => {
       sandbox.replace(IRCClient, 'staffSupportChan', '#1');
       sandbox.replace(IRCClient, 'userSupportChan', '#2');
       sandbox.replace(IRCClient, 'supportLogChan', '#3');
@@ -59,7 +59,7 @@ describe('IRCClient', () => {
     beforeEach(() => {
       frameworkConnectStub = sandbox.stub(IRCClient.bot, 'connect');
     });
-    it('attempts to connect to IRC with specified params', () => {
+    it('Attempts to connect to IRC with specified params', () => {
       IRCClient.connect();
       assert.calledWith(frameworkConnectStub, {
         host: IRCClient.IRC_SERVER,
@@ -78,7 +78,7 @@ describe('IRCClient', () => {
     beforeEach(() => {
       frameworkQuitStub = sandbox.stub(IRCClient.bot, 'quit');
     });
-    it('attempts to connect to IRC with specified params', () => {
+    it('Attempts to connect to IRC with specified params', () => {
       IRCClient.shutDown();
       assert.calledOnce(frameworkQuitStub);
     });
@@ -140,7 +140,7 @@ describe('IRCClient', () => {
       expect(IRCClient.joinChannel('channel')).to.be.instanceOf(Promise);
     });
 
-    it('calls SAJOIN with correct params', () => {
+    it('Calls SAJOIN with correct params', () => {
       IRCClient.joinChannel('channel');
       assert.calledOnceWithExactly(rawCommandStub, 'SAJOIN', IRCClient.IRC_NICK, 'channel');
     });
@@ -156,7 +156,7 @@ describe('IRCClient', () => {
       expect(IRCClient.joinUserToChannel('channel', 'nick')).to.be.instanceOf(Promise);
     });
 
-    it('calls SAJOIN with correct params', () => {
+    it('Calls SAJOIN with correct params', () => {
       sandbox.replace(IRCClient, 'channelState', { channel: new Set([]) });
       IRCClient.joinUserToChannel('channel', 'nick');
       assert.calledOnceWithExactly(rawCommandStub, 'SAJOIN', 'nick', 'channel');
@@ -169,16 +169,16 @@ describe('IRCClient', () => {
       whoStub = sandbox.stub(IRCClient, 'who').resolves([]);
     });
 
-    it('returns false if nick is not in channel', async () => {
+    it('Returns false if nick is not in channel', async () => {
       expect(await IRCClient.isChannelOp('chan', 'nick')).to.be.false;
     });
 
-    it('returns false if matching nick in channel has mode o', async () => {
+    it('Returns false if matching nick in channel has mode o', async () => {
       whoStub.resolves([{ nick: 'nick', channel_modes: ['a'] }]);
       expect(await IRCClient.isChannelOp('chan', 'nick')).to.be.false;
     });
 
-    it('returns true if matching nick in channel has mode o', async () => {
+    it('Returns true if matching nick in channel has mode o', async () => {
       whoStub.resolves([{ nick: 'nick', channel_modes: ['o'] }]);
       expect(await IRCClient.isChannelOp('chan', 'nick')).to.be.true;
     });
@@ -190,13 +190,13 @@ describe('IRCClient', () => {
       whoisStub = sandbox.stub(IRCClient, 'whois');
     });
 
-    it('returns true if whois matches staff host mask', async () => {
+    it('Returns true if whois matches staff host mask', async () => {
       whoisStub.resolves({ nick: 'nick', ident: 'ident', hostname: 'host' });
       sandbox.replace(IRCClient, 'staffHostMasks', ['*!*@*']);
       expect(await IRCClient.isStaff('nick')).to.be.true;
     });
 
-    it('returns false if whois does not match staff host mask', async () => {
+    it('Returns false if whois does not match staff host mask', async () => {
       whoisStub.resolves({ nick: 'nick', ident: 'ident', hostname: 'host' });
       sandbox.replace(IRCClient, 'staffHostMasks', ['*!*@notyou']);
       expect(await IRCClient.isStaff('nick')).to.be.false;
@@ -209,14 +209,14 @@ describe('IRCClient', () => {
       rawCommandStub = sandbox.stub(IRCClient, 'rawCommand');
     });
 
-    it('calls SAPART with correct params', () => {
+    it('Calls SAPART with correct params', () => {
       IRCClient.kickUserFromChannel('chan', 'nick');
       assert.calledOnceWithExactly(rawCommandStub, 'SAPART', 'nick', 'chan');
     });
   });
 
   describe('waitUntilJoined', () => {
-    it('returns if client is joined', async () => {
+    it('Returns if client is joined', async () => {
       sandbox.replace(IRCClient, 'joined', true);
       await IRCClient.waitUntilJoined();
     });
@@ -334,14 +334,14 @@ describe('IRCClient', () => {
       sandbox.stub(IRCClient, 'isMe').returns(false);
     });
 
-    it('adds joining nick to channel state if not me', async () => {
+    it('Adds joining nick to channel state if not me', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set([]) });
       sandbox.replace(IRCClient, 'joinHandlers', new Set());
       await IRCClient.handleUserJoin('chan', 'nick');
       expect(IRCClient.channelState['chan'].has('nick')).to.be.true;
     });
 
-    it('calls joinHandlers callbacks if not me', async () => {
+    it('Calls joinHandlers callbacks if not me', async () => {
       const myCallback = sandbox.stub();
       sandbox.replace(IRCClient, 'channelState', { chan: new Set([]) });
       sandbox.replace(IRCClient, 'joinHandlers', new Set([myCallback]));
@@ -358,38 +358,38 @@ describe('IRCClient', () => {
       joinChannelStub = sandbox.stub(IRCClient, 'joinChannel');
     });
 
-    it('deletes channel state if is me', async () => {
+    it('Deletes channel state if is me', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['stuff']) });
       await IRCClient.handleChannelLeave('chan', IRCClient.IRC_NICK, 'parted');
       expect(IRCClient.channelState['chan']).to.be.undefined;
     });
 
-    it('attempts to rejoin channel if is me and is a main channel', async () => {
+    it('Attempts to rejoin channel if is me and is a main channel', async () => {
       mainChannelsStub.returns(['chan']);
       await IRCClient.handleChannelLeave('chan', IRCClient.IRC_NICK, 'parted');
       assert.calledWithExactly(joinChannelStub, 'chan');
     });
 
-    it('attempts to rejoin channel if is me and is a support session channel', async () => {
+    it('Attempts to rejoin channel if is me and is a support session channel', async () => {
       mainChannelsStub.returns(['chan']);
       await IRCClient.handleChannelLeave('chan', IRCClient.IRC_NICK, 'parted');
       assert.calledWithExactly(joinChannelStub, 'chan');
     });
 
-    it('does not normally attempt to rejoin channel if is me', async () => {
+    it('Does not normally attempt to rejoin channel if is me', async () => {
       sandbox.replace(IRCClient, 'supportSessionChannels', []);
       await IRCClient.handleChannelLeave('chan', IRCClient.IRC_NICK, 'parted');
       assert.notCalled(joinChannelStub);
     });
 
-    it('removes leaving nick from channel state if not me', async () => {
+    it('Removes leaving nick from channel state if not me', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['nick']) });
       sandbox.replace(IRCClient, 'leaveHandlers', new Set());
       await IRCClient.handleChannelLeave('chan', 'nick', 'parted');
       expect(IRCClient.channelState['chan'].has('nick')).to.be.false;
     });
 
-    it('calls leaveHandler callbacks if not me', async () => {
+    it('Calls leaveHandler callbacks if not me', async () => {
       const myCallback = sandbox.stub();
       sandbox.replace(IRCClient, 'channelState', { chan: new Set([]) });
       sandbox.replace(IRCClient, 'leaveHandlers', new Set([myCallback]));
@@ -399,14 +399,14 @@ describe('IRCClient', () => {
   });
 
   describe('handleUserLeave', () => {
-    it('removes nick from channel state', async () => {
+    it('Removes nick from channel state', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['nick']) });
       sandbox.replace(IRCClient, 'leaveHandlers', new Set());
       await IRCClient.handleUserLeave('nick');
       expect(IRCClient.channelState['chan'].has('nick')).to.be.false;
     });
 
-    it('calls leaveHandlers callbacks if not me', async () => {
+    it('Calls leaveHandlers callbacks if not me', async () => {
       const myCallback = sandbox.stub();
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['nick']) });
       sandbox.replace(IRCClient, 'leaveHandlers', new Set([myCallback]));
@@ -416,7 +416,7 @@ describe('IRCClient', () => {
   });
 
   describe('handleUserList', () => {
-    it('set channel state with new nicks', async () => {
+    it('Set channel state with new nicks', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['oldnick']) });
       await IRCClient.handleUserList('chan', [{ nick: 'newnick1' }, { nick: 'newnick2' }]);
       expect(IRCClient.channelState['chan'].has('oldnick')).to.be.false;
@@ -426,7 +426,7 @@ describe('IRCClient', () => {
   });
 
   describe('handleUserNewNick', () => {
-    it('updates nicks in channel state', async () => {
+    it('Updates nicks in channel state', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['oldnick']) });
       sandbox.replace(IRCClient, 'renameHandlers', new Set());
       await IRCClient.handleUserNewNick('oldnick', 'newnick');
@@ -434,7 +434,7 @@ describe('IRCClient', () => {
       expect(IRCClient.channelState['chan'].has('newnick')).to.be.true;
     });
 
-    it('calls renameHandlers callbacks', async () => {
+    it('Calls renameHandlers callbacks', async () => {
       const myCallback = sandbox.stub();
       sandbox.replace(IRCClient, 'channelState', {});
       sandbox.replace(IRCClient, 'renameHandlers', new Set([myCallback]));
@@ -591,7 +591,7 @@ describe('IRCClient', () => {
   });
 
   describe('IRC Framework Handlers', () => {
-    describe('close handler', () => {
+    describe('Close handler', () => {
       let closeHandler: any;
       let registeredHandler: any;
       let disconnectHandler: SinonStub;
@@ -614,7 +614,7 @@ describe('IRCClient', () => {
       });
     });
 
-    describe('registered handler', () => {
+    describe('Registered handler', () => {
       let registeredHandler: any;
       let botRawStub: SinonStub;
       beforeEach(() => {
@@ -630,7 +630,7 @@ describe('IRCClient', () => {
       });
     });
 
-    describe('unknown command handler', () => {
+    describe('Unknown command handler', () => {
       let commandHandler: any;
       let postOperStub: SinonStub;
       beforeEach(() => {
@@ -650,7 +650,7 @@ describe('IRCClient', () => {
       });
     });
 
-    describe('userlist handler', () => {
+    describe('Userlist handler', () => {
       let userlistHandler: any;
       let handleUserListStub: SinonStub;
       beforeEach(() => {
@@ -658,13 +658,13 @@ describe('IRCClient', () => {
         handleUserListStub = sandbox.stub(IRCClient, 'handleUserList');
       });
 
-      it('calls handleUserList with correct params from userlist', async () => {
+      it('Calls handleUserList with correct params from userlist', async () => {
         await userlistHandler({ channel: 'chan', users: ['someone'] });
         assert.calledWithExactly(handleUserListStub, 'chan', ['someone']);
       });
     });
 
-    describe('join handler', () => {
+    describe('Join handler', () => {
       let joinHandler: any;
       let handleUserJoinStub: SinonStub;
       beforeEach(() => {
@@ -672,13 +672,13 @@ describe('IRCClient', () => {
         handleUserJoinStub = sandbox.stub(IRCClient, 'handleUserJoin');
       });
 
-      it('calls handleUserJoin with correct params from join', async () => {
+      it('Calls handleUserJoin with correct params from join', async () => {
         await joinHandler({ channel: 'chan', nick: 'someone' });
         assert.calledWithExactly(handleUserJoinStub, 'chan', 'someone');
       });
     });
 
-    describe('kick handler', () => {
+    describe('Kick handler', () => {
       let kickHandler: any;
       let channelLeaveStub: SinonStub;
       beforeEach(() => {
@@ -686,13 +686,13 @@ describe('IRCClient', () => {
         channelLeaveStub = sandbox.stub(IRCClient, 'handleChannelLeave');
       });
 
-      it('calls handleChannelLeave with correct params', async () => {
+      it('Calls handleChannelLeave with correct params', async () => {
         await kickHandler({ kicked: 'me', channel: 'chan' });
         assert.calledWithExactly(channelLeaveStub, 'chan', 'me', 'kicked');
       });
     });
 
-    describe('part handler', () => {
+    describe('Part handler', () => {
       let partHandler: any;
       let channelLeaveStub: SinonStub;
       beforeEach(() => {
@@ -700,13 +700,13 @@ describe('IRCClient', () => {
         channelLeaveStub = sandbox.stub(IRCClient, 'handleChannelLeave');
       });
 
-      it('calls handleChannelLeave with correct params', async () => {
+      it('Calls handleChannelLeave with correct params', async () => {
         await partHandler({ nick: 'me', channel: 'chan' });
         assert.calledWithExactly(channelLeaveStub, 'chan', 'me', 'parted');
       });
     });
 
-    describe('quit handler', () => {
+    describe('Quit handler', () => {
       let quitHandler: any;
       let handleUserLeaveStub: SinonStub;
       beforeEach(() => {
@@ -714,13 +714,13 @@ describe('IRCClient', () => {
         handleUserLeaveStub = sandbox.stub(IRCClient, 'handleUserLeave');
       });
 
-      it('calls handleUserLeave with correct params from quit', async () => {
+      it('Calls handleUserLeave with correct params from quit', async () => {
         await quitHandler({ nick: 'someone' });
         assert.calledWithExactly(handleUserLeaveStub, 'someone');
       });
     });
 
-    describe('nick handler', () => {
+    describe('Nick handler', () => {
       let nickHandler: any;
       let handleUserNewNickStub: SinonStub;
       beforeEach(() => {
@@ -728,22 +728,22 @@ describe('IRCClient', () => {
         handleUserNewNickStub = sandbox.stub(IRCClient, 'handleUserNewNick');
       });
 
-      it('calls handleUserNewNick with correct params from nick', async () => {
+      it('Calls handleUserNewNick with correct params from nick', async () => {
         await nickHandler({ nick: 'someone', new_nick: 'new' });
         assert.calledWithExactly(handleUserNewNickStub, 'someone', 'new');
       });
     });
 
-    describe('misc handlers', () => {
-      it('nick in use handler exists', () => {
+    describe('Misc handlers', () => {
+      it('Nick in use handler exists', () => {
         IRCClient.bot.listeners('nick in use')[0]();
       });
 
-      it('debug handler exists', () => {
+      it('Debug handler exists', () => {
         IRCClient.bot.listeners('debug')[0]();
       });
 
-      it('raw handler exists', () => {
+      it('Raw handler exists', () => {
         IRCClient.bot.listeners('raw')[0]({});
       });
     });

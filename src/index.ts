@@ -1,8 +1,8 @@
 import 'source-map-support/register';
 import { LevelDB } from './clients/leveldb';
 import { IRCClient } from './clients/irc';
-import { SupportQueue } from './handlers/supportQueue';
-import { SupportSessionManager } from './handlers/supportSessionManager';
+import { QueueManager } from './handlers/queueManager';
+import { SessionManager } from './handlers/sessionManager';
 import { addCommands } from './commands';
 import { sleep } from './utils';
 import { getLogger } from './logger';
@@ -11,11 +11,11 @@ const logger = getLogger('main');
 async function main() {
   logger.info('Starting renge');
   await LevelDB.initialize();
-  await SupportQueue.initQueue();
+  await QueueManager.initQueue();
   addCommands();
   IRCClient.connect();
   await IRCClient.waitUntilJoined();
-  await SupportSessionManager.initSessionManager();
+  await SessionManager.initSessionManager();
 }
 
 let stopSignalReceived = false;

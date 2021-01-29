@@ -3,7 +3,7 @@ import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
 import { listenForUserReenable, listenForStaffReenable, listenForStaffReenableInChannel } from './reenable';
 import { IRCClient } from '../clients/irc';
 import { ABClient } from '../clients/animebytes';
-import { SupportQueue } from '../handlers/supportQueue';
+import { QueueManager } from '../handlers/queueManager';
 
 describe('Reenable', () => {
   let sandbox: SinonSandbox;
@@ -40,22 +40,32 @@ describe('Reenable', () => {
     });
   });
 
-  describe('reenable [user]', () => {
+  describe('UserReenable', () => {
     let reenableCallback: any;
     let eventReply: SinonStub;
     let queueUserStub: SinonStub;
     let reenableUserStub: SinonStub;
+    let isStaffStub: SinonStub;
 
     beforeEach(() => {
       listenForUserReenable();
       reenableCallback = hookStub.getCall(0).args[2];
       eventReply = sandbox.stub();
       reenableUserStub = sandbox.stub(ABClient, 'anonymousReEnableUser');
-      queueUserStub = sandbox.stub(SupportQueue, 'queueUser');
+      queueUserStub = sandbox.stub(QueueManager, 'queueUser');
+      isStaffStub = sandbox.stub(IRCClient, 'isStaff').resolves(false);
     });
 
     it('Does not respond if it fails to match the regex', async () => {
       await reenableCallback({ message: 'badMessage', reply: eventReply });
+      assert.notCalled(eventReply);
+      assert.notCalled(reenableUserStub);
+      assert.notCalled(queueUserStub);
+    });
+
+    it('Does not respond for staff', async () => {
+      isStaffStub.resolves(true);
+      await reenableCallback({ message: '!reenable user', reply: eventReply });
       assert.notCalled(eventReply);
       assert.notCalled(reenableUserStub);
       assert.notCalled(queueUserStub);
@@ -78,9 +88,18 @@ describe('Reenable', () => {
       sandbox.useFakeTimers(new Date('2001-04-12T13:32:01.913Z'));
       reenableUserStub.resolves({ success: true });
       await reenableCallback({ message: '!reenable user', reply: eventReply });
-      assert.calledOnceWithExactly(
+      assert.calledThrice(eventReply);
+      assert.calledWith(
         eventReply,
-        'User reenabled! Welcome back user, please login by 00:00 UTC (within 10 hours from now) in order to prevent being disabled again. To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle. Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules' // eslint-disable-line max-len
+        'User reenabled! Welcome back user, please login by 00:00 UTC (within 10 hours from now) in order to prevent being disabled again.'
+      );
+      assert.calledWith(
+        eventReply,
+        'To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle.'
+      );
+      assert.calledWith(
+        eventReply,
+        'Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules'
       );
     });
 
@@ -95,7 +114,7 @@ describe('Reenable', () => {
     });
   });
 
-  describe('reenable [staff]', () => {
+  describe('StaffReenable', () => {
     let reenableCallback: any;
     let eventReply: SinonStub;
     let reenableStaffStub: SinonStub;
@@ -154,9 +173,18 @@ describe('Reenable', () => {
       sandbox.useFakeTimers(new Date('2001-04-12T13:32:01.913Z'));
       reenableStaffStub.resolves({ success: true });
       await reenableCallback({ message: '!reenable user', hostname: 'staffuser', reply: eventReply });
-      assert.calledOnceWithExactly(
+      assert.calledThrice(eventReply);
+      assert.calledWith(
         eventReply,
-        'User reenabled! Welcome back user, please login by 00:00 UTC (within 10 hours from now) in order to prevent being disabled again. To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle. Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules' // eslint-disable-line max-len
+        'User reenabled! Welcome back user, please login by 00:00 UTC (within 10 hours from now) in order to prevent being disabled again.'
+      );
+      assert.calledWith(
+        eventReply,
+        'To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle.'
+      );
+      assert.calledWith(
+        eventReply,
+        'Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules'
       );
     });
   });

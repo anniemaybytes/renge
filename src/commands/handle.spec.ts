@@ -1,8 +1,8 @@
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
 import { listenForStaffHandle } from './handle';
 import { IRCClient } from '../clients/irc';
-import { SupportSessionManager } from '../handlers/supportSessionManager';
-import { SupportQueue } from '../handlers/supportQueue';
+import { SessionManager } from '../handlers/sessionManager';
+import { QueueManager } from '../handlers/queueManager';
 
 describe('Handle', () => {
   let sandbox: SinonSandbox;
@@ -34,8 +34,8 @@ describe('Handle', () => {
       listenForStaffHandle();
       handleCallback = hookStub.getCall(0).args[2];
       eventReply = sandbox.stub();
-      startSupportSessionStub = sandbox.stub(SupportSessionManager, 'startSupportSession');
-      unqueueUserStub = sandbox.stub(SupportQueue, 'unqueueUser').resolves({} as any);
+      startSupportSessionStub = sandbox.stub(SessionManager, 'startSupportSession');
+      unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser').resolves({} as any);
     });
 
     it('Does not respond if it fails to match the regex', async () => {

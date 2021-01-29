@@ -5,11 +5,14 @@ import { LevelDB } from '../clients/leveldb';
 import { Config } from '../clients/config';
 import { IRCClient } from '../clients/irc';
 import { ABClient } from '../clients/animebytes';
-import { SupportQueue } from './supportQueue';
+import { QueueManager } from './queueManager';
 import { listenForStaffReenableInChannel } from '../commands/reenable';
-import { getIRCColorFunc, randomIRCColor, spaceNick } from '../utils';
+import { getIRCColorFunc, randomIRCColor, spaceNick, dateToFriendlyString } from '../utils';
 import { getLogger } from '../logger';
-const logger = getLogger('SupportSession');
+import type { PreviousLog } from '../types';
+const logger = getLogger('SessionHandler');
+
+const PreviousSessionLogsKey = 'sessions::previousLogs';
 
 const logsDir = Config.getConfig().logs_dir || 'logs';
 // Make sure logs dir exists
@@ -21,8 +24,9 @@ try {
   if (!lstatSync(logsDir).isDirectory()) throw new Error(`Logs directory '${logsDir}' already exists but is not a directory!`);
 }
 
-export class SupportSession {
+export class SessionHandler {
   public static logsDir = logsDir; // copied as a static var for testing purposes
+  public static previousLogs: PreviousLog[] = [];
   public ircChannel: string;
   public staffHandlerNick: string;
   public userClientNick: string;
@@ -34,8 +38,21 @@ export class SupportSession {
   public ended: boolean;
   public started: boolean;
 
+  public static async initPreviousLogs() {
+    try {
+      SessionHandler.previousLogs = (await LevelDB.get(PreviousSessionLogsKey)).map((item: any) => {
+        item.time = new Date(item.time);
+        return item;
+      });
+    } catch (e) {
+      // Ignore NotFoundError (assumes no previous session logs)
+      if (e.type !== 'NotFoundError') throw e;
+      SessionHandler.previousLogs = [];
+    }
+  }
+
   public static newSession(channel: string, staffNick: string, userNick: string, reason: string, removalCallback: () => any) {
-    const session = new SupportSession();
+    const session = new SessionHandler();
     session.ircChannel = channel;
     session.staffHandlerNick = staffNick;
     session.userClientNick = userNick;
@@ -51,7 +68,7 @@ export class SupportSession {
   }
 
   public static async fromState(stateJSON: any, removalCallback: () => any) {
-    const session = new SupportSession();
+    const session = new SessionHandler();
     session.ircChannel = stateJSON.chan;
     session.staffHandlerNick = stateJSON.staff;
     session.userClientNick = stateJSON.user;
@@ -117,7 +134,7 @@ export class SupportSession {
       if (announce)
         IRCClient.message(
           IRCClient.userSupportChan,
-          `Now helping ${this.userClientNick}.${SupportQueue.queue.length ? ` Next in queue: ${SupportQueue.queue[0].nick}` : ''}`
+          `Now helping ${this.userClientNick}.${QueueManager.queue.length ? ` Next in queue: ${QueueManager.queue[0].nick}` : ''}`
         );
       IRCClient.notice(this.staffHandlerNick, `Starting support session for ${this.userClientNick} in ${this.ircChannel}, user IP: ${userIP}`);
       // Remove the user to help from the main support channel
@@ -138,12 +155,7 @@ export class SupportSession {
   }
 
   public async logMsg(msg: string) {
-    this.log.push(
-      `${new Date()
-        .toISOString()
-        .replace('T', ' ')
-        .replace(/\.\d+Z/, ' UTC')} | ${msg}`
-    );
+    this.log.push(`${dateToFriendlyString(new Date())} | ${msg}`);
     try {
       IRCClient.message(
         IRCClient.supportLogChan,
@@ -167,9 +179,10 @@ export class SupportSession {
     if (!this.ended) {
       if (this.started) {
         // Create the serialized log
+        const now = new Date();
         const logStr = this.log.join('\n');
-        const logName = `${this.ircChannel} ${new Date().toISOString()} ${this.userClientNick} ${this.staffHandlerNick}.log`;
-        const logPath = path.join(SupportSession.logsDir, logName);
+        const logName = `${this.ircChannel} ${now.toISOString()} ${this.userClientNick} ${this.staffHandlerNick}.log`;
+        const logPath = path.join(SessionHandler.logsDir, logName);
         // Save the log to disk
         try {
           await promises.writeFile(logPath, logStr, 'utf8');
@@ -188,8 +201,21 @@ export class SupportSession {
               .replace(/\/|\+|=/g, '')
               .substring(0, 16)
           );
+          SessionHandler.previousLogs.push({
+            user: this.userClientNick,
+            staff: this.staffHandlerNick,
+            time: now,
+            paste: pasteURL,
+          });
         } catch (e) {
           logger.error(`Error uploading logs to AB: ${e}`);
+        }
+        try {
+          // Trim down so we're only saving the last 10 previous logs
+          while (SessionHandler.previousLogs.length > 10) SessionHandler.previousLogs.shift();
+          await LevelDB.put(PreviousSessionLogsKey, SessionHandler.previousLogs);
+        } catch (e) {
+          logger.error(`Error saving log to state: ${e}`);
         }
         // Send completion message to log channel
         try {

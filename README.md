@@ -19,10 +19,12 @@ It supports the following commands for staff:
     if none given, then first in the queue
   - `!handle <nick> <reason>` - start a support session with someone who is not in the queue
   - `!sessions` - view the currently active support sessions
+  - `!kill <channel>` - end a current support session by channel name
   - `!reenable <user> [reason]` - reenable an existing disabled user with staff permissions
+  - `!ip <nick>` - send the IP of a nick to the staff requester in a NOTICE. Nick must be in the queue or an active session
+  - `!logs` - view the up to the last 10 completed support sessions and their log pastes
 - In active support session
   - `!reenable <user>` - reenable an existing disabled user with staff permissions
-
 
 ## Installation
 

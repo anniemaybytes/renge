@@ -38,38 +38,38 @@ describe('leveldb', () => {
       }).LevelDB.initialize;
     });
 
-    it('calls level to initialize db with expected params', async () => {
+    it('Calls level to initialize db with expected params', async () => {
       await initialize();
       assert.calledOnceWithExactly(mockLevel, 'state.ldb', { valueEncoding: 'json' });
     });
   });
 
   describe('get', () => {
-    it('calls get with the correct provided params', async () => {
+    it('Calls get with the correct provided params', async () => {
       await LevelDB.get('thing');
       assert.calledWithExactly(mockDB.get, 'thing');
     });
 
-    it('returns the get call of the db', async () => {
+    it('Returns the get call of the db', async () => {
       mockDB.get.resolves('data');
       expect(await LevelDB.get('thing')).to.equal('data');
     });
   });
 
   describe('put', () => {
-    it('calls put with the correct provided params', async () => {
+    it('Calls put with the correct provided params', async () => {
       await LevelDB.put('key', 'thing');
       assert.calledWithExactly(mockDB.put, 'key', 'thing');
     });
 
-    it('returns the put call of the db', async () => {
+    it('Returns the put call of the db', async () => {
       mockDB.put.resolves('data');
       expect(await LevelDB.put('key', 'thing')).to.equal('data');
     });
   });
 
   describe('delete', () => {
-    it('calls del with the correct provided params', async () => {
+    it('Calls del with the correct provided params', async () => {
       await LevelDB.delete('key');
       assert.calledWithExactly(mockDB.del, 'key');
     });
@@ -87,7 +87,7 @@ describe('leveldb', () => {
       listEventEmitter = mockDB.createValueStream();
     });
 
-    it('returns array of data evens from db', async () => {
+    it('Returns array of data evens from db', async () => {
       const promise = LevelDB.list();
       listEventEmitter.emit('data', 'thing1');
       listEventEmitter.emit('data', 'thing2');
@@ -104,12 +104,12 @@ describe('leveldb', () => {
         expect(e).to.equal('someError');
         return;
       }
-      expect.fail('did not throw');
+      expect.fail('Did not throw');
     });
   });
 
   describe('shutdown', () => {
-    it('calls close on the db', async () => {
+    it('Calls close on the db', async () => {
       await LevelDB.shutdown();
       assert.calledOnce(mockDB.close);
     });

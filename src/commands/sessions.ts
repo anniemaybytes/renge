@@ -1,5 +1,5 @@
 import { IRCClient } from '../clients/irc';
-import { SupportSessionManager } from '../handlers/supportSessionManager';
+import { SessionManager } from '../handlers/sessionManager';
 import { spaceNick } from '../utils';
 import { getLogger } from '../logger';
 const logger = getLogger('SessionsCommand');
@@ -8,8 +8,8 @@ const sessionsMatchRegex = /^!sessions/i;
 
 export function listenForStaffSessions() {
   IRCClient.addMessageHookInChannel(IRCClient.staffSupportChan, sessionsMatchRegex, async (event) => {
-    logger.debug(`Staff sessions request from nick ${event.nick}`);
-    const activeSessions = Object.values(SupportSessionManager.activeSupportSessions).filter((sess) => !sess.ended);
+    logger.debug(`Staff !sessions request from nick ${event.nick}`);
+    const activeSessions = Object.values(SessionManager.activeSupportSessions).filter((sess) => !sess.ended);
     if (!activeSessions.length) {
       event.reply('No active sessions');
     } else {

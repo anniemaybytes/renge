@@ -1,31 +1,32 @@
 import { LevelDB } from '../clients/leveldb';
-import { SupportSession } from './supportSession';
+import { SessionHandler } from './sessionHandler';
 import { IRCClient } from '../clients/irc';
 import { getLogger } from '../logger';
-const logger = getLogger('SupportSessionManager');
+const logger = getLogger('SessionManager');
 
 const ActiveSessionsKey = 'sessions::activeSessions';
 
-export class SupportSessionManager {
-  public static activeSupportSessions: { [chan: string]: SupportSession } = {};
+export class SessionManager {
+  public static activeSupportSessions: { [chan: string]: SessionHandler } = {};
 
   // Needs to be called on startup to load previously active sessions from state
   public static async initSessionManager() {
+    await SessionHandler.initPreviousLogs();
     let activeSessions = [];
     try {
       activeSessions = await LevelDB.get(ActiveSessionsKey);
     } catch (e) {
       // Ignore NotFoundError (assumes no existing sessions)
       if (e.type !== 'NotFoundError') throw e;
-      SupportSessionManager.activeSupportSessions = {};
+      SessionManager.activeSupportSessions = {};
     }
     // Load all sessions from state
     for (const sessionKey of activeSessions) {
       try {
         const sessionData = await LevelDB.get(sessionKey);
         logger.info(`Resuming session in ${sessionData.chan}`);
-        const session = await SupportSession.fromState(sessionData, SupportSessionManager.generateDeleteCallback(sessionData.chan));
-        SupportSessionManager.activeSupportSessions[sessionData.chan] = session;
+        const session = await SessionHandler.fromState(sessionData, SessionManager.generateDeleteCallback(sessionData.chan));
+        SessionManager.activeSupportSessions[sessionData.chan] = session;
         // Check that sessions we loaded from state are still in progress
         // Note that the session will delete and clean itself up with this call if it is not
         await session.checkIfInProgress();
@@ -36,7 +37,7 @@ export class SupportSessionManager {
     }
     // Remove all users from support session channels which are not currently active
     IRCClient.supportSessionChannels.forEach((chan) => {
-      if (!SupportSessionManager.activeSupportSessions[chan]) {
+      if (!SessionManager.activeSupportSessions[chan]) {
         for (const nick of IRCClient.channelState[chan.toLowerCase()] || new Set()) {
           if (!IRCClient.isMe(nick)) IRCClient.kickUserFromChannel(chan, nick);
         }
@@ -47,19 +48,19 @@ export class SupportSessionManager {
   public static async startSupportSession(userNick: string, staffNick: string, announce: boolean, reason: string, ip: string) {
     let chanToUse = '';
     for (const chan of IRCClient.supportSessionChannels) {
-      if (!SupportSessionManager.activeSupportSessions[chan]) {
+      if (!SessionManager.activeSupportSessions[chan]) {
         chanToUse = chan;
         break;
       }
     }
     if (!chanToUse) throw new Error('All available support channels are in use!');
     logger.info(`Starting support session for ${userNick} with ${staffNick} in ${chanToUse}`);
-    const session = SupportSession.newSession(chanToUse, staffNick, userNick, reason, SupportSessionManager.generateDeleteCallback(chanToUse));
+    const session = SessionHandler.newSession(chanToUse, staffNick, userNick, reason, SessionManager.generateDeleteCallback(chanToUse));
     try {
       await session.startNewSession(ip, announce);
       // Only add this as an active support session if it was successfully started
-      SupportSessionManager.activeSupportSessions[chanToUse] = session;
-      await SupportSessionManager.saveToState();
+      SessionManager.activeSupportSessions[chanToUse] = session;
+      await SessionManager.saveToState();
     } catch (e) {
       logger.error(`Error starting new session: ${e}`);
       await session.endSession();
@@ -69,7 +70,7 @@ export class SupportSessionManager {
 
   public static async saveToState() {
     const activeKeys = [];
-    for (const sess of Object.values(SupportSessionManager.activeSupportSessions)) {
+    for (const sess of Object.values(SessionManager.activeSupportSessions)) {
       if (!sess.ended) activeKeys.push(sess.dbKey());
     }
     await LevelDB.put(ActiveSessionsKey, activeKeys);
@@ -77,8 +78,8 @@ export class SupportSessionManager {
 
   private static generateDeleteCallback(channel: string) {
     return () => {
-      delete SupportSessionManager.activeSupportSessions[channel];
-      SupportSessionManager.saveToState();
+      delete SessionManager.activeSupportSessions[channel];
+      SessionManager.saveToState();
     };
   }
 }

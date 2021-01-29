@@ -73,3 +73,10 @@ export function minutesToString(minutes: number) {
     else return `${baseMinutes} minutes`;
   }
 }
+
+export function dateToFriendlyString(date: Date) {
+  return date
+    .toISOString()
+    .replace('T', ' ')
+    .replace(/\.\d+Z/, ' UTC');
+}

@@ -63,3 +63,10 @@ export interface WHOResponse {
   channel: string;
   channel_modes: string[];
 }
+
+export interface PreviousLog {
+  user: string;
+  staff: string;
+  time: Date;
+  paste: string;
+}

@@ -1,7 +1,7 @@
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
 import { listenForStaffUnqueue, listenForUserUnqueue } from './unqueue';
 import { IRCClient } from '../clients/irc';
-import { SupportQueue } from '../handlers/supportQueue';
+import { QueueManager } from '../handlers/queueManager';
 
 describe('Unqueue', () => {
   let sandbox: SinonSandbox;
@@ -30,7 +30,7 @@ describe('Unqueue', () => {
     });
   });
 
-  describe('unqueue [user]', () => {
+  describe('UserUnqueue', () => {
     let unqueueCallback: any;
     let eventReply: SinonStub;
     let unqueueUserStub: SinonStub;
@@ -40,8 +40,8 @@ describe('Unqueue', () => {
       listenForUserUnqueue();
       unqueueCallback = hookStub.getCall(0).args[2];
       eventReply = sandbox.stub();
-      unqueueUserStub = sandbox.stub(SupportQueue, 'unqueueUser');
-      addUnqueuedUserStub = sandbox.stub(SupportQueue, 'addUnqueuedUser');
+      unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
+      addUnqueuedUserStub = sandbox.stub(QueueManager, 'addUnqueuedUser');
     });
 
     it('Calls unqueue user on the queue for the nick', async () => {
@@ -66,7 +66,7 @@ describe('Unqueue', () => {
     });
   });
 
-  describe('unqueue [staff]', () => {
+  describe('StaffUnqueue', () => {
     let unqueueCallback: any;
     let eventReply: SinonStub;
     let unqueueUserStub: SinonStub;
@@ -76,8 +76,8 @@ describe('Unqueue', () => {
       listenForStaffUnqueue();
       unqueueCallback = hookStub.getCall(0).args[2];
       eventReply = sandbox.stub();
-      unqueueUserStub = sandbox.stub(SupportQueue, 'unqueueUser');
-      addUnqueuedUserStub = sandbox.stub(SupportQueue, 'addUnqueuedUser');
+      unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
+      addUnqueuedUserStub = sandbox.stub(QueueManager, 'addUnqueuedUser');
     });
 
     it('Does not respond if it fails to match the regex', async () => {
@@ -89,7 +89,7 @@ describe('Unqueue', () => {
 
     it('Responds with help if no position is provided', async () => {
       await unqueueCallback({ message: '!unqueue', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'Provide either a position to unqueue');
+      assert.calledOnceWithExactly(eventReply, 'Please provide a valid position number to unqueue');
     });
 
     it('Responds with help if position provided is not a valid number', async () => {

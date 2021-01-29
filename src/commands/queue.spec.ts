@@ -1,7 +1,7 @@
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
 import { listenForStaffQueue, listenForUserQueue } from './queue';
 import { IRCClient } from '../clients/irc';
-import { SupportQueue } from '../handlers/supportQueue';
+import { QueueManager } from '../handlers/queueManager';
 
 describe('Queue', () => {
   let sandbox: SinonSandbox;
@@ -30,7 +30,7 @@ describe('Queue', () => {
     });
   });
 
-  describe('queue [user]', () => {
+  describe('UserQueue', () => {
     let queueCallback: any;
     let eventReply: SinonStub;
     let queueUserStub: SinonStub;
@@ -41,7 +41,7 @@ describe('Queue', () => {
       listenForUserQueue();
       queueCallback = hookStub.getCall(0).args[2];
       eventReply = sandbox.stub();
-      queueUserStub = sandbox.stub(SupportQueue, 'queueUser');
+      queueUserStub = sandbox.stub(QueueManager, 'queueUser');
       isStaffStub = sandbox.stub(IRCClient, 'isStaff').resolves(false);
       isOpStub = sandbox.stub(IRCClient, 'isChannelOp').resolves(false);
     });
@@ -109,7 +109,7 @@ describe('Queue', () => {
     });
   });
 
-  describe('queue [staff]', () => {
+  describe('StaffQueue', () => {
     let queueCallback: any;
     let eventReply: SinonStub;
 
@@ -121,13 +121,13 @@ describe('Queue', () => {
     });
 
     it('Replies appropriately with an empty queue', async () => {
-      sandbox.replace(SupportQueue, 'queue', []);
+      sandbox.replace(QueueManager, 'queue', []);
       await queueCallback({ reply: eventReply });
       assert.calledOnceWithExactly(eventReply, 'No users are queued!');
     });
 
     it('Replies correctly with users in the queue', async () => {
-      sandbox.replace(SupportQueue, 'queue', [
+      sandbox.replace(QueueManager, 'queue', [
         { nick: 'n1', time: new Date('1999-01-01T05:30:00.000Z'), reason: 'r1' } as any,
         { nick: 'n2', time: new Date('1999-01-01T05:29:00.000Z'), reason: 'r2' } as any,
         { nick: 'n3', time: new Date('1999-01-01T05:28:00.000Z'), reason: 'r3' } as any,
