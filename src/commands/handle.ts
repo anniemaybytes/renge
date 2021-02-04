@@ -18,7 +18,7 @@ export function listenForStaffHandle() {
         // Remove user from queue if they were in the queue, ignoring errors
         QueueManager.unqueueUser(undefined, matches[1]).catch(() => '');
       } catch (e) {
-        return event.reply(`${e}`);
+        return event.reply(e.message ? e.message : e.toString());
       }
     }
     const pos = matches[1] ? parseInt(matches[1]) : 1; // if a position or nick wasn't specified, default to position 1
@@ -27,7 +27,7 @@ export function listenForStaffHandle() {
       const user = await QueueManager.unqueueUser(pos - 1);
       return await SessionManager.startSupportSession(user.nick, event.nick, true, user.reason, user.ip);
     } catch (e) {
-      return event.reply(`${e}`);
+      return event.reply(e.message ? e.message : e.toString());
     }
   });
 }

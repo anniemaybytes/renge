@@ -518,6 +518,13 @@ describe('SessionHandler', () => {
       assert.notCalled(deleteStub);
     });
 
+    it('Only ends once if called multiple times', async () => {
+      await Promise.all([session.endSession(), session.endSession(), session.endSession(), session.endSession()]);
+      assert.calledOnce(createPasteStub);
+      assert.calledOnce(messageStub);
+      assert.calledOnce(deleteStub);
+    });
+
     it('Saves serialized log to disk', async () => {
       session.log = ['one', 'two'];
       await session.endSession();

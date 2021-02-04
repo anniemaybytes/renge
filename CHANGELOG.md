@@ -3,6 +3,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v2.2.0
+### Fixed
+- Only allow a session to be ended once ever
+
+### Changed
+- Update idle warning message string
+- Pick session colors in pre-determined random order
+- Format replies better when replying to events with unqueue errors
+- Update `!sessions` output to include color, time, and reason
+
 ## v2.1.0
 ### Fixed
 - `!reenable` not working in active session

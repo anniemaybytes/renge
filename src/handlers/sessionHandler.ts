@@ -176,80 +176,79 @@ export class SessionHandler {
   }
 
   public async endSession() {
-    if (!this.ended) {
-      if (this.started) {
-        // Create the serialized log
-        const now = new Date();
-        const logStr = this.log.join('\n');
-        const logName = `${this.ircChannel} ${now.toISOString()} ${this.userClientNick} ${this.staffHandlerNick}.log`;
-        const logPath = path.join(SessionHandler.logsDir, logName);
-        // Save the log to disk
-        try {
-          await promises.writeFile(logPath, logStr, 'utf8');
-        } catch (e) {
-          logger.error(`Unexpected error writing log file '${logPath}': ${e}`);
-        }
-        // Upload the log as a paste
-        let pasteURL = '';
-        try {
-          pasteURL = await ABClient.createPaste(
-            logName,
-            logStr,
-            crypto
-              .randomBytes(32)
-              .toString('base64')
-              .replace(/\/|\+|=/g, '')
-              .substring(0, 16)
-          );
-          SessionHandler.previousLogs.push({
-            user: this.userClientNick,
-            staff: this.staffHandlerNick,
-            time: now,
-            paste: pasteURL,
-          });
-        } catch (e) {
-          logger.error(`Error uploading logs to AB: ${e}`);
-        }
-        try {
-          // Trim down so we're only saving the last 10 previous logs
-          while (SessionHandler.previousLogs.length > 10) SessionHandler.previousLogs.shift();
-          await LevelDB.put(PreviousSessionLogsKey, SessionHandler.previousLogs);
-        } catch (e) {
-          logger.error(`Error saving log to state: ${e}`);
-        }
-        // Send completion message to log channel
-        try {
-          IRCClient.message(
-            IRCClient.supportLogChan,
-            `Support conversation in ${this.ircChannel} between ${spaceNick(this.userClientNick)} and ${spaceNick(this.staffHandlerNick)} complete. ${
-              pasteURL ? `A log can be found at ${pasteURL}` : 'I could not properly upload the logs, but they should be saved locally.'
-            }`
-          );
-        } catch (e) {
-          logger.error(`Error sending message to log channel: ${e}`);
-        }
-      }
-      // Kick users from the session channel
-      for (const nick of IRCClient.channelState[this.ircChannel.toLowerCase()] || new Set()) {
-        if (!IRCClient.isMe(nick)) IRCClient.kickUserFromChannel(this.ircChannel, nick);
-      }
-      // Call all of the cleanup callbacks
-      for (const cb of this.cleanupCallbacks) {
-        try {
-          await cb();
-        } catch (e) {
-          logger.error(`Exception when calling session cleanup callback: ${e}`);
-        }
-      }
-      // Remove this session from state
-      try {
-        await LevelDB.delete(this.dbKey());
-      } catch (e) {
-        logger.error(`Failed to remove session from state: ${e}`);
-      }
-      logger.info(`Support session for ${this.userClientNick} with ${this.staffHandlerNick} in ${this.ircChannel} has ended`);
-    }
+    if (this.ended) return;
     this.ended = true;
+    if (this.started) {
+      // Create the serialized log
+      const now = new Date();
+      const logStr = this.log.join('\n');
+      const logName = `${this.ircChannel} ${now.toISOString()} ${this.userClientNick} ${this.staffHandlerNick}.log`;
+      const logPath = path.join(SessionHandler.logsDir, logName);
+      // Save the log to disk
+      try {
+        await promises.writeFile(logPath, logStr, 'utf8');
+      } catch (e) {
+        logger.error(`Unexpected error writing log file '${logPath}': ${e}`);
+      }
+      // Upload the log as a paste
+      let pasteURL = '';
+      try {
+        pasteURL = await ABClient.createPaste(
+          logName,
+          logStr,
+          crypto
+            .randomBytes(32)
+            .toString('base64')
+            .replace(/\/|\+|=/g, '')
+            .substring(0, 16)
+        );
+        SessionHandler.previousLogs.push({
+          user: this.userClientNick,
+          staff: this.staffHandlerNick,
+          time: now,
+          paste: pasteURL,
+        });
+      } catch (e) {
+        logger.error(`Error uploading logs to AB: ${e}`);
+      }
+      try {
+        // Trim down so we're only saving the last 10 previous logs
+        while (SessionHandler.previousLogs.length > 10) SessionHandler.previousLogs.shift();
+        await LevelDB.put(PreviousSessionLogsKey, SessionHandler.previousLogs);
+      } catch (e) {
+        logger.error(`Error saving log to state: ${e}`);
+      }
+      // Send completion message to log channel
+      try {
+        IRCClient.message(
+          IRCClient.supportLogChan,
+          `Support conversation in ${this.ircChannel} between ${spaceNick(this.userClientNick)} and ${spaceNick(this.staffHandlerNick)} complete. ${
+            pasteURL ? `A log can be found at ${pasteURL}` : 'I could not properly upload the logs, but they should be saved locally.'
+          }`
+        );
+      } catch (e) {
+        logger.error(`Error sending message to log channel: ${e}`);
+      }
+    }
+    // Kick users from the session channel
+    for (const nick of IRCClient.channelState[this.ircChannel.toLowerCase()] || new Set()) {
+      if (!IRCClient.isMe(nick)) IRCClient.kickUserFromChannel(this.ircChannel, nick);
+    }
+    // Call all of the cleanup callbacks
+    for (const cb of this.cleanupCallbacks) {
+      try {
+        await cb();
+      } catch (e) {
+        logger.error(`Exception when calling session cleanup callback: ${e}`);
+      }
+    }
+    // Remove this session from state
+    try {
+      await LevelDB.delete(this.dbKey());
+    } catch (e) {
+      logger.error(`Failed to remove session from state: ${e}`);
+    }
+    logger.info(`Support session for ${this.userClientNick} with ${this.staffHandlerNick} in ${this.ircChannel} has ended`);
   }
 
   public async saveToState() {

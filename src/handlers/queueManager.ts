@@ -94,7 +94,7 @@ export class QueueManager {
     QueueManager.unqueuedUsers[nickLower] = setTimeout(() => {
       IRCClient.message(
         IRCClient.userSupportChan,
-        `Hi ${nick}, we do not allow idling in support channels. Please queue with !queue <reason> or part the channel.`
+        `Hi ${nick}, we do not allow idling in the support channel. If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.` // eslint-disable-line max-len
       );
       QueueManager.unqueuedUsers[nickLower] = setTimeout(() => IRCClient.kickUserFromChannel(IRCClient.userSupportChan, nick), 900000);
     }, 300000);
@@ -131,12 +131,14 @@ export class QueueManager {
   // Get a user from the queue either by index or nick (or top of queue if neither)
   public static async unqueueUser(index = 0, nick = '') {
     if (index && nick) throw new Error('Only one of index or nick can be used for unqueue');
+    if (QueueManager.queue.length === 0) throw new Error('No users are in the queue!');
     if (nick) {
       const nickLower = nick.toLowerCase();
       index = QueueManager.queue.findIndex((user) => user.nick.toLowerCase() === nickLower);
-      if (index === -1) throw new Error(`${nick} not in queue!`);
+      if (index === -1) throw new Error(`${nick} is not in the queue!`);
     }
-    if (index >= QueueManager.queue.length) throw new Error(`Only ${QueueManager.queue.length} users are in queue!`);
+    if (index >= QueueManager.queue.length)
+      throw new Error(`Only ${QueueManager.queue.length} user${QueueManager.queue.length === 1 ? ' is' : 's are'} in the queue!`);
     const user = QueueManager.queue.splice(index, 1)[0];
     await QueueManager.saveQueueToState();
     return user;

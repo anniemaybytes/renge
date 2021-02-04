@@ -1,6 +1,6 @@
 import { IRCClient } from '../clients/irc';
 import { SessionManager } from '../handlers/sessionManager';
-import { spaceNick } from '../utils';
+import { spaceNick, getIRCColorFunc, dateToFriendlyString } from '../utils';
 import { getLogger } from '../logger';
 const logger = getLogger('SessionsCommand');
 
@@ -14,7 +14,11 @@ export function listenForStaffSessions() {
       event.reply('No active sessions');
     } else {
       activeSessions.forEach((sess) => {
-        event.reply(`${sess.ircChannel} - ${spaceNick(sess.staffHandlerNick)} helping ${spaceNick(sess.userClientNick)}`);
+        event.reply(
+          `${getIRCColorFunc(sess.color)(sess.ircChannel)} - ${spaceNick(sess.staffHandlerNick)} helping ${spaceNick(
+            sess.userClientNick
+          )} started ${dateToFriendlyString(new Date(sess.startTime))} reason: ${sess.reason}`
+        );
       });
     }
   });

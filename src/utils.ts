@@ -1,25 +1,27 @@
 import colors from 'irc-colors';
 
 const colorMap: { [color: string]: (str: string) => string } = {
-  white: colors.white,
-  navy: colors.navy,
   green: colors.green,
+  navy: colors.navy,
   red: colors.red,
+  white: colors.white,
   brown: colors.brown,
   purple: colors.purple,
-  olive: colors.olive,
   yellow: colors.yellow,
+  olive: colors.olive,
   lime: colors.lime,
   teal: colors.teal,
-  cyan: colors.cyan,
-  blue: colors.blue,
   pink: colors.pink,
+  cyan: colors.cyan,
   gray: colors.gray,
+  blue: colors.blue,
 };
 
+const colorsList = Object.keys(colorMap);
+let currentColorIndex = Math.floor(Math.random() * colorsList.length);
+
 export function randomIRCColor() {
-  const allColors = Object.keys(colorMap);
-  return allColors[Math.floor(Math.random() * allColors.length)];
+  return colorsList[currentColorIndex++ % colorsList.length];
 }
 
 export function getIRCColorFunc(color: string) {

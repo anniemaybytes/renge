@@ -46,17 +46,29 @@ describe('Sessions', () => {
         ircChannel: 'chan1',
         staffHandlerNick: 'staff1',
         userClientNick: 'user1',
+        color: 'blue',
+        startTime: '2000-01-01T00:00:00.000Z',
+        reason: 'reason',
       } as any;
       SessionManager.activeSupportSessions['chan2'] = {
         ended: false,
         ircChannel: 'chan2',
         staffHandlerNick: 'staff2',
         userClientNick: 'user2',
+        color: 'blue',
+        startTime: '2000-01-01T00:00:00.000Z',
+        reason: 'reason',
       } as any;
       await sessionsCallback({ reply: eventReply });
       assert.calledTwice(eventReply);
-      assert.calledWith(eventReply, 'chan1 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B1 helping u\u200Bs\u200Be\u200Br\u200B1');
-      assert.calledWith(eventReply, 'chan2 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B2 helping u\u200Bs\u200Be\u200Br\u200B2');
+      assert.calledWith(
+        eventReply,
+        '\x0312chan1\x03 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B1 helping u\u200Bs\u200Be\u200Br\u200B1 started 2000-01-01 00:00:00 UTC reason: reason'
+      );
+      assert.calledWith(
+        eventReply,
+        '\x0312chan2\x03 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B2 helping u\u200Bs\u200Be\u200Br\u200B2 started 2000-01-01 00:00:00 UTC reason: reason'
+      );
     });
   });
 });

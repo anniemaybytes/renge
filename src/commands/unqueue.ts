@@ -31,7 +31,7 @@ export function listenForStaffUnqueue() {
       QueueManager.addUnqueuedUser(user.nick);
       return event.reply(`Removed ${user.nick} from the queue`);
     } catch (e) {
-      return event.reply(`${e}`);
+      return event.reply(e.message ? e.message : e.toString());
     }
   });
 }

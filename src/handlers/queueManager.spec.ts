@@ -234,7 +234,7 @@ describe('SupportQueue', () => {
       assert.calledOnceWithExactly(
         messageStub,
         'chan',
-        'Hi nick, we do not allow idling in support channels. Please queue with !queue <reason> or part the channel.'
+        'Hi nick, we do not allow idling in the support channel. If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.' // eslint-disable-line max-len
       );
     });
 
@@ -317,12 +317,22 @@ describe('SupportQueue', () => {
     let mockDBPut: SinonStub;
     beforeEach(() => {
       mockDBPut = sandbox.stub(LevelDB, 'put');
-      sandbox.replace(QueueManager, 'queue', []);
+      sandbox.replace(QueueManager, 'queue', [{ nick: 'one' }] as any);
     });
 
     it('Throws an error if providing both index and nick', async () => {
       try {
         await QueueManager.unqueueUser(1, 'nick');
+      } catch (e) {
+        return;
+      }
+      expect.fail('Did not throw');
+    });
+
+    it('Throws error if the queue is empty', async () => {
+      QueueManager.queue = [];
+      try {
+        await QueueManager.unqueueUser();
       } catch (e) {
         return;
       }
