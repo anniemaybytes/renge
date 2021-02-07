@@ -159,9 +159,7 @@ export class SessionHandler {
     try {
       IRCClient.message(
         IRCClient.supportLogChan,
-        `${getIRCColorFunc(this.color)(this.ircChannel)} - ${msg
-          .replace(new RegExp(this.userClientNick, 'gi'), spaceNick(this.userClientNick))
-          .replace(new RegExp(this.staffHandlerNick, 'gi'), spaceNick(this.staffHandlerNick))}`
+        `${getIRCColorFunc(this.color)(this.ircChannel)} - ${msg.replace(new RegExp(this.staffHandlerNick, 'gi'), spaceNick(this.staffHandlerNick))}`
       );
     } catch (e) {
       logger.warn('Unable to send message to log channel');
@@ -222,7 +220,7 @@ export class SessionHandler {
       try {
         IRCClient.message(
           IRCClient.supportLogChan,
-          `Support conversation in ${this.ircChannel} between ${spaceNick(this.userClientNick)} and ${spaceNick(this.staffHandlerNick)} complete. ${
+          `Support conversation in ${this.ircChannel} between ${this.userClientNick} and ${spaceNick(this.staffHandlerNick)} complete. ${
             pasteURL ? `A log can be found at ${pasteURL}` : 'I could not properly upload the logs, but they should be saved locally.'
           }`
         );

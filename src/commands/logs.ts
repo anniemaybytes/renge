@@ -12,9 +12,7 @@ export function listenForStaffLogs() {
     if (SessionHandler.previousLogs.length === 0) return event.reply('No previous logs found!');
     SessionHandler.previousLogs.forEach((prevLog, i) => {
       event.reply(
-        `${i + 1}. Conversation between ${spaceNick(prevLog.user)} and ${spaceNick(prevLog.staff)} at ${dateToFriendlyString(prevLog.time)}: ${
-          prevLog.paste
-        }`
+        `${i + 1}. Conversation between ${prevLog.user} and ${spaceNick(prevLog.staff)} at ${dateToFriendlyString(prevLog.time)}: ${prevLog.paste}`
       );
     });
   });

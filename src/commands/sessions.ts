@@ -15,9 +15,9 @@ export function listenForStaffSessions() {
     } else {
       activeSessions.forEach((sess) => {
         event.reply(
-          `${getIRCColorFunc(sess.color)(sess.ircChannel)} - ${spaceNick(sess.staffHandlerNick)} helping ${spaceNick(
+          `${getIRCColorFunc(sess.color)(sess.ircChannel)} - ${spaceNick(sess.staffHandlerNick)} helping ${
             sess.userClientNick
-          )} started ${dateToFriendlyString(new Date(sess.startTime))} reason: ${sess.reason}`
+          } started ${dateToFriendlyString(new Date(sess.startTime))} reason: ${sess.reason}`
         );
       });
     }

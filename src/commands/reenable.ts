@@ -5,7 +5,7 @@ import { minutesToString } from '../utils';
 import { getLogger } from '../logger';
 const logger = getLogger('ReenableCommand');
 
-const reenableMatchRegex = /^!reenable(?:\s*([a-zA-Z0-9_-]+))(?:\s*(.+))?/i;
+const reenableMatchRegex = /^!reenable(?:\s*(\S+))(?:\s*(.+))?/i;
 
 function userReenableMessages(username: string) {
   const now = new Date();

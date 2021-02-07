@@ -439,11 +439,7 @@ describe('SessionHandler', () => {
     it('Sends message to log channel with colored channel name and spacing nicks', async () => {
       session.color = 'blue';
       await session.logMsg('nick: hi staff');
-      assert.calledOnceWithExactly(
-        messageStub,
-        IRCClient.supportLogChan,
-        '\x0312chan\x03 - n\u200Bi\u200Bc\u200Bk: hi s\u200Bt\u200Ba\u200Bf\u200Bf'
-      );
+      assert.calledOnceWithExactly(messageStub, IRCClient.supportLogChan, '\x0312chan\x03 - nick: hi s\u200Bt\u200Ba\u200Bf\u200Bf');
     });
 
     it('Does not throw if failure to send message to log channel', async () => {
@@ -566,7 +562,7 @@ describe('SessionHandler', () => {
       assert.calledOnceWithExactly(
         messageStub,
         IRCClient.supportLogChan,
-        'Support conversation in chan between n\u200Bi\u200Bc\u200Bk and s\u200Bt\u200Ba\u200Bf\u200Bf complete. A log can be found at pasteURL'
+        'Support conversation in chan between nick and s\u200Bt\u200Ba\u200Bf\u200Bf complete. A log can be found at pasteURL'
       );
     });
 
@@ -576,7 +572,7 @@ describe('SessionHandler', () => {
       assert.calledOnceWithExactly(
         messageStub,
         IRCClient.supportLogChan,
-        'Support conversation in chan between n\u200Bi\u200Bc\u200Bk and s\u200Bt\u200Ba\u200Bf\u200Bf complete. I could not properly upload the logs, but they should be saved locally.'
+        'Support conversation in chan between nick and s\u200Bt\u200Ba\u200Bf\u200Bf complete. I could not properly upload the logs, but they should be saved locally.'
       );
     });
 
