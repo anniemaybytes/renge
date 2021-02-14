@@ -105,7 +105,7 @@ describe('Queue', () => {
     it('Replies with an error if the queueing fails', async () => {
       queueUserStub.throws('err');
       await queueCallback({ message: '!queue  my reason', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'Internal Error');
+      assert.calledOnceWithExactly(eventReply, 'An error has occured, please try again later');
     });
   });
 

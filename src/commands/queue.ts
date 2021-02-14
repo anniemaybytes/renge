@@ -23,7 +23,7 @@ export function listenForUserQueue() {
       return event.reply("You're already in the queue! If you'd like to leave just type !unqueue or part the channel.");
     } catch (e) {
       logger.error(`Error queuing ${event.nick}: ${e}`);
-      return event.reply('Internal Error');
+      return event.reply('An error has occured, please try again later');
     }
   });
 }

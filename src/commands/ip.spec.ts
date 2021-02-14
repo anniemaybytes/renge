@@ -73,7 +73,7 @@ describe('IP', () => {
     it('Responds with an error if unexpected error', async () => {
       whoisStub.throws('err');
       await ipCallback({ message: '!ip nick', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'Internal Error');
+      assert.calledOnceWithExactly(eventReply, 'An internal error has occured, please notify sysop');
     });
   });
 });

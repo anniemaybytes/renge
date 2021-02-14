@@ -21,7 +21,7 @@ export function listenForStaffIP() {
         IRCClient.notice(event.nick, `${matches[1]}'s IP is ${(await IRCClient.whois(matches[1])).actual_ip || 'Unavailable'}`);
       } catch (e) {
         logger.error(e);
-        event.reply('Internal Error');
+        event.reply('An internal error has occured, please notify sysop');
       }
     } else {
       event.reply(`${matches[1]} is not in the queue nor in an active session!`);
