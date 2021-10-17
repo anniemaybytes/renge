@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v2.5.0
+### Added
+- Set up channel modes for session channels at the start of each session
+
 ## v2.4.2
 ### Fixed
 - Don't end a session when checking if in progress if the session hasn't even started
