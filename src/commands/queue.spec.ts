@@ -85,7 +85,7 @@ describe('Queue', () => {
       assert.notCalled(queueUserStub);
     });
 
-    it('Queues user with correct params', async () => {
+    it('Queues user with correct parameters', async () => {
       await queueCallback({ message: '!queue  my reason', nick: 'someone', reply: eventReply });
       assert.calledOnceWithExactly(queueUserStub, 'someone', 'my reason');
     });

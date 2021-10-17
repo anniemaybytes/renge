@@ -130,6 +130,8 @@ export class SessionHandler {
       for (const nick of IRCClient.channelState[this.ircChannel.toLowerCase()] || new Set()) {
         if (!IRCClient.isMe(nick)) IRCClient.kickUserFromChannel(this.ircChannel, nick);
       }
+      // Make sure modes are set on session channel
+      IRCClient.setUpSessionChannel(this.ircChannel);
       // Send announcement/notice
       if (announce)
         IRCClient.message(
@@ -168,6 +170,7 @@ export class SessionHandler {
   }
 
   public async checkIfInProgress() {
+    if (!this.started) return;
     const users = IRCClient.channelState[this.ircChannel.toLowerCase()] || new Set();
     // If the assigned staff or user aren't in the support session channel, this session is ended;
     if (!users.has(this.staffHandlerNick.toLowerCase()) || !users.has(this.userClientNick.toLowerCase())) await this.endSession();

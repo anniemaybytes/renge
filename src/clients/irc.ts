@@ -101,11 +101,16 @@ export class IRCClient {
     }
     for (const chan of IRCClient.supportSessionChannels) {
       await IRCClient.joinChannel(chan);
-      IRCClient.rawCommand('MODE', chan, '+ins');
-      IRCClient.staffHostMasks.forEach((hostMask) => IRCClient.rawCommand('MODE', chan, '+I', hostMask));
+      IRCClient.setUpSessionChannel(chan);
     }
     IRCClient.connectedHandlers.forEach((cb) => cb());
     IRCClient.joined = true;
+  }
+
+  public static setUpSessionChannel(channel: string) {
+    IRCClient.rawCommand('SAMODE', channel, '+o', IRCClient.IRC_NICK);
+    IRCClient.rawCommand('MODE', channel, '+ins');
+    IRCClient.staffHostMasks.forEach((hostMask) => IRCClient.rawCommand('MODE', channel, '+I', hostMask));
   }
 
   // Join a room and detect/throw for failure
@@ -132,10 +137,10 @@ export class IRCClient {
     return new Promise<void>((resolve, reject) => {
       if (IRCClient.isMe(nick)) return reject(new Error('Should not be using joinUserToChannel with self'));
       // This restriction of needing to be in the room is so that we can use the JOIN message to
-      // detect if the sajoin was successful or not which we do not get if we are not in the room.
+      // detect if the SAJOIN was successful or not which we do not get if we are not in the room.
       if (!IRCClient.channelState[channel.toLowerCase()]) return reject(new Error('Cannot join user to channel which I am not currently in'));
       if (IRCClient.channelState[channel.toLowerCase()].has(nick.toLowerCase())) return resolve(); // user is already in the channel
-      const timeout = setTimeout(() => reject(new Error(`Unable to sajoin ${nick} to ${channel}`)), 5000);
+      const timeout = setTimeout(() => reject(new Error(`Unable to SAJOIN ${nick} to ${channel}`)), 5000);
       function joinHandler(event: any) {
         if (event.channel.toLowerCase() === channel.toLowerCase() && event.nick.toLowerCase() === nick.toLowerCase()) {
           clearTimeout(timeout);

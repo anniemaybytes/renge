@@ -339,6 +339,7 @@ describe('SessionHandler', () => {
   describe('startNewSession', () => {
     let session: SessionHandler;
     let kickUserStub: SinonStub;
+    let setUpChanStub: SinonStub;
     let messageStub: SinonStub;
     let noticeStub: SinonStub;
     let joinUserToChannelStub: SinonStub;
@@ -347,6 +348,7 @@ describe('SessionHandler', () => {
       session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       sandbox.stub(IRCClient, 'isMe').returns(false);
       kickUserStub = sandbox.stub(IRCClient, 'kickUserFromChannel');
+      setUpChanStub = sandbox.stub(IRCClient, 'setUpSessionChannel');
       messageStub = sandbox.stub(IRCClient, 'message');
       noticeStub = sandbox.stub(IRCClient, 'notice');
       joinUserToChannelStub = sandbox.stub(IRCClient, 'joinUserToChannel');
@@ -359,6 +361,11 @@ describe('SessionHandler', () => {
       IRCClient.channelState = { chan: new Set(['someone']) };
       await session.startNewSession('ip', false);
       assert.calledWithExactly(kickUserStub.getCall(0), 'chan', 'someone');
+    });
+
+    it('Sets up session channel', async () => {
+      await session.startNewSession('ip', false);
+      assert.calledOnceWithExactly(setUpChanStub, session.ircChannel);
     });
 
     it('Sends announcement in user support channel if announce', async () => {
@@ -453,6 +460,7 @@ describe('SessionHandler', () => {
     let endStub: SinonStub;
     beforeEach(() => {
       session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
+      session.started = true;
       endStub = sandbox.stub(session, 'endSession');
       sandbox.replace(IRCClient, 'channelState', { chan: new Set([]) });
     });
@@ -467,6 +475,13 @@ describe('SessionHandler', () => {
       IRCClient.channelState['chan'] = new Set(['staff']);
       await session.checkIfInProgress();
       assert.calledOnce(endStub);
+    });
+
+    it('Does nothing if the session has not yet started', async () => {
+      session.started = false;
+      IRCClient.channelState['chan'] = new Set(['staff']);
+      await session.checkIfInProgress();
+      assert.notCalled(endStub);
     });
 
     it('Does nothing if staff and user are still in channel', async () => {
@@ -635,7 +650,7 @@ describe('SessionHandler', () => {
       dbPutStub = sandbox.stub(LevelDB, 'put');
     });
 
-    it('Saves to DB with expected params', async () => {
+    it('Saves to database with expected parameters', async () => {
       session.color = 'blue';
       await session.saveToState();
       assert.calledOnceWithExactly(dbPutStub, 'session::chan', {

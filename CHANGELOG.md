@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v2.4.2
+### Fixed
+- Don't end a session when checking if in progress if the session hasn't even started
+
+## v2.4.1
+### Changed
+- Force usage of Alpine 3.13 in Dockerfile
+
 ## v2.4.0
 ### Changed
 - Customize error messages

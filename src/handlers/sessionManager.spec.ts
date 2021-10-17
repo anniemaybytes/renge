@@ -72,7 +72,7 @@ describe('SessionManager', () => {
       expect.fail('Did not throw');
     });
 
-    it('Creates session from state with correct params and checks if it is in progress', async () => {
+    it('Creates session from state with correct parameters and checks if it is in progress', async () => {
       const sessionData = { chan: 'chan' };
       mockDBGet.onFirstCall().returns(['key1']);
       mockDBGet.onSecondCall().returns(sessionData);
@@ -112,7 +112,7 @@ describe('SessionManager', () => {
       expect.fail('Did not throw');
     });
 
-    it('Creates and starts a new session with correct params', async () => {
+    it('Creates and starts a new session with correct parameters', async () => {
       await SessionManager.startSupportSession('nick', 'staff', true, 'reason', 'ip');
       expect(mockNewSession.getCall(0).args[0]).to.equal('chan');
       expect(mockNewSession.getCall(0).args[1]).to.equal('staff');

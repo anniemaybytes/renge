@@ -294,7 +294,7 @@ describe('SupportQueue', () => {
       expect(await QueueManager.queueUser('nick', 'reason')).to.be.false;
     });
 
-    it('Pushes user to queue with correct params and saves to state', async () => {
+    it('Pushes user to queue with correct parameters and saves to state', async () => {
       const fakeDate = new Date();
       sandbox.useFakeTimers(fakeDate);
       await QueueManager.queueUser('nick', 'reason');

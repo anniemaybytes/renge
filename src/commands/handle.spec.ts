@@ -24,7 +24,7 @@ describe('Handle', () => {
     });
   });
 
-  describe('handle [staff]', () => {
+  describe('handle', () => {
     let handleCallback: any;
     let eventReply: SinonStub;
     let startSupportSessionStub: SinonStub;

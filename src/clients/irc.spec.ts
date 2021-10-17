@@ -59,7 +59,7 @@ describe('IRCClient', () => {
     beforeEach(() => {
       frameworkConnectStub = sandbox.stub(IRCClient.bot, 'connect');
     });
-    it('Attempts to connect to IRC with specified params', () => {
+    it('Attempts to connect to IRC with specified parameters', () => {
       IRCClient.connect();
       assert.calledWith(frameworkConnectStub, {
         host: IRCClient.IRC_SERVER,
@@ -78,7 +78,7 @@ describe('IRCClient', () => {
     beforeEach(() => {
       frameworkQuitStub = sandbox.stub(IRCClient.bot, 'quit');
     });
-    it('Attempts to connect to IRC with specified params', () => {
+    it('Attempts to connect to IRC with specified parameters', () => {
       IRCClient.shutDown();
       assert.calledOnce(frameworkQuitStub);
     });
@@ -88,12 +88,14 @@ describe('IRCClient', () => {
     let mainChannelsStub: SinonStub;
     let rawCommandStub: SinonStub;
     let joinChannel: SinonStub;
+    let setupChanStub: SinonStub;
     beforeEach(() => {
       sandbox.replace(IRCClient, 'supportSessionChannels', []);
       sandbox.replace(IRCClient, 'channelState', {});
       mainChannelsStub = sandbox.stub(IRCClient, 'mainChannels').returns([]);
       rawCommandStub = sandbox.stub(IRCClient, 'rawCommand');
       joinChannel = sandbox.stub(IRCClient, 'joinChannel');
+      setupChanStub = sandbox.stub(IRCClient, 'setUpSessionChannel');
     });
 
     it('Sets registered to true on IRCClient', async () => {
@@ -120,13 +122,26 @@ describe('IRCClient', () => {
       assert.calledWithExactly(joinChannel, 'channel');
     });
 
-    it('Calls joinChannel and sets mode for support session channels', async () => {
+    it('Calls joinChannel and setUpSessionChannel for support session channels', async () => {
       IRCClient.supportSessionChannels = ['supportsession'];
       IRCClient.channelState = { supportsession: new Set<string>() };
       await IRCClient.postOper();
       assert.calledWithExactly(joinChannel, 'supportsession');
-      assert.calledWithExactly(rawCommandStub.getCall(2), 'MODE', 'supportsession', '+ins');
-      assert.calledWithExactly(rawCommandStub.getCall(3), 'MODE', 'supportsession', '+I', IRCClient.staffHostMasks[0]);
+      assert.calledWithExactly(setupChanStub, 'supportsession');
+    });
+  });
+
+  describe('setUpSessionChannel', () => {
+    let rawCommandStub: SinonStub;
+    beforeEach(() => {
+      rawCommandStub = sandbox.stub(IRCClient, 'rawCommand');
+    });
+
+    it('Sets correct modes on provided channel', () => {
+      IRCClient.setUpSessionChannel('supportsession');
+      assert.calledWithExactly(rawCommandStub.getCall(0), 'SAMODE', 'supportsession', '+o', IRCClient.IRC_NICK);
+      assert.calledWithExactly(rawCommandStub.getCall(1), 'MODE', 'supportsession', '+ins');
+      assert.calledWithExactly(rawCommandStub.getCall(2), 'MODE', 'supportsession', '+I', IRCClient.staffHostMasks[0]);
     });
   });
 
@@ -140,7 +155,7 @@ describe('IRCClient', () => {
       expect(IRCClient.joinChannel('channel')).to.be.instanceOf(Promise);
     });
 
-    it('Calls SAJOIN with correct params', () => {
+    it('Calls SAJOIN with correct parameters', () => {
       IRCClient.joinChannel('channel');
       assert.calledOnceWithExactly(rawCommandStub, 'SAJOIN', IRCClient.IRC_NICK, 'channel');
     });
@@ -156,7 +171,7 @@ describe('IRCClient', () => {
       expect(IRCClient.joinUserToChannel('channel', 'nick')).to.be.instanceOf(Promise);
     });
 
-    it('Calls SAJOIN with correct params', () => {
+    it('Calls SAJOIN with correct parameters', () => {
       sandbox.replace(IRCClient, 'channelState', { channel: new Set([]) });
       IRCClient.joinUserToChannel('channel', 'nick');
       assert.calledOnceWithExactly(rawCommandStub, 'SAJOIN', 'nick', 'channel');
@@ -209,7 +224,7 @@ describe('IRCClient', () => {
       rawCommandStub = sandbox.stub(IRCClient, 'rawCommand');
     });
 
-    it('Calls SAPART with correct params', () => {
+    it('Calls SAPART with correct parameters', () => {
       IRCClient.kickUserFromChannel('chan', 'nick');
       assert.calledOnceWithExactly(rawCommandStub, 'SAPART', 'nick', 'chan');
     });
@@ -254,7 +269,7 @@ describe('IRCClient', () => {
       assert.calledOnce(checkIfRegisteredStub);
     });
 
-    it('Passes and returns the correct arguments to the irc framework', async () => {
+    it('Passes and returns the correct arguments to the irc-framework', async () => {
       expect(await IRCClient.who('chan')).to.deep.equal(['blah']);
       assert.calledWithExactly(whoStub, 'chan');
     });
@@ -273,7 +288,7 @@ describe('IRCClient', () => {
       assert.calledOnce(checkIfRegisteredStub);
     });
 
-    it('Passes and returns the correct arguments to the irc framework', async () => {
+    it('Passes and returns the correct arguments to the irc-framework', async () => {
       expect(await IRCClient.whois('chan')).to.deep.equal({ some: 'data' });
       assert.calledWithExactly(whoisStub, 'chan');
     });
@@ -292,7 +307,7 @@ describe('IRCClient', () => {
       assert.calledOnce(checkIfRegisteredStub);
     });
 
-    it('Passes the correct arguments to the irc framework', () => {
+    it('Passes the correct arguments to the irc-framework', () => {
       IRCClient.message('chan', 'message');
       assert.calledWithExactly(sayStub, 'chan', 'message');
     });
@@ -317,7 +332,7 @@ describe('IRCClient', () => {
       assert.calledOnce(checkIfRegisteredStub);
     });
 
-    it('Passes the correct arguments to the irc framework', () => {
+    it('Passes the correct arguments to the irc-framework', () => {
       IRCClient.notice('nick', 'message');
       assert.calledWithExactly(noticeStub, 'nick', 'message');
     });
@@ -485,7 +500,7 @@ describe('IRCClient', () => {
       callbackWrapperStub = sandbox.stub(IRCClient, 'callbackWrapper').returns('ok' as any);
     });
 
-    it('Adds the messagehook to the irc-framework with the correct params', () => {
+    it('Adds the messagehook to IRCClient with the correct parameters', () => {
       const myRegex = /.*/;
       const myCallback = () => 'whatever';
       IRCClient.addMessageHookInChannel('#channel', myRegex, myCallback);
@@ -493,7 +508,7 @@ describe('IRCClient', () => {
       assert.calledWithExactly(matchMessageStub, myRegex, 'ok');
     });
 
-    it('Returns the function from irc-framework to remove the added listener', () => {
+    it('Returns the function from IRCClient to remove the added listener', () => {
       const removeListenerFunc = () => 'blah';
       matchMessageStub.returns({ stop: removeListenerFunc });
       expect(IRCClient.addMessageHookInChannel('#channel', /.*/, () => 'whatever') === removeListenerFunc).to.be.true;
@@ -590,7 +605,7 @@ describe('IRCClient', () => {
     });
   });
 
-  describe('IRC Framework Handlers', () => {
+  describe('IRCClient handlers', () => {
     describe('Close handler', () => {
       let closeHandler: any;
       let registeredHandler: any;
@@ -622,7 +637,7 @@ describe('IRCClient', () => {
         botRawStub = sandbox.stub(IRCClient.bot, 'raw');
       });
 
-      it('Calls raw on bot with oper command', async () => {
+      it('Calls raw on bot with OPER command', async () => {
         sandbox.replace(IRCClient, 'IRC_OPER_USERNAME', 'user');
         sandbox.replace(IRCClient, 'IRC_OPER_PASSWORD', 'password');
         await registeredHandler();
@@ -658,7 +673,7 @@ describe('IRCClient', () => {
         handleUserListStub = sandbox.stub(IRCClient, 'handleUserList');
       });
 
-      it('Calls handleUserList with correct params from userlist', async () => {
+      it('Calls handleUserList with correct parameters from USERLIST', async () => {
         await userlistHandler({ channel: 'chan', users: ['someone'] });
         assert.calledWithExactly(handleUserListStub, 'chan', ['someone']);
       });
@@ -672,7 +687,7 @@ describe('IRCClient', () => {
         handleUserJoinStub = sandbox.stub(IRCClient, 'handleUserJoin');
       });
 
-      it('Calls handleUserJoin with correct params from join', async () => {
+      it('Calls handleUserJoin with correct parameters from JOIN', async () => {
         await joinHandler({ channel: 'chan', nick: 'someone' });
         assert.calledWithExactly(handleUserJoinStub, 'chan', 'someone');
       });
@@ -686,7 +701,7 @@ describe('IRCClient', () => {
         channelLeaveStub = sandbox.stub(IRCClient, 'handleChannelLeave');
       });
 
-      it('Calls handleChannelLeave with correct params', async () => {
+      it('Calls handleChannelLeave with correct parameters', async () => {
         await kickHandler({ kicked: 'me', channel: 'chan' });
         assert.calledWithExactly(channelLeaveStub, 'chan', 'me', 'kicked');
       });
@@ -700,7 +715,7 @@ describe('IRCClient', () => {
         channelLeaveStub = sandbox.stub(IRCClient, 'handleChannelLeave');
       });
 
-      it('Calls handleChannelLeave with correct params', async () => {
+      it('Calls handleChannelLeave with correct parameters', async () => {
         await partHandler({ nick: 'me', channel: 'chan' });
         assert.calledWithExactly(channelLeaveStub, 'chan', 'me', 'parted');
       });
@@ -714,7 +729,7 @@ describe('IRCClient', () => {
         handleUserLeaveStub = sandbox.stub(IRCClient, 'handleUserLeave');
       });
 
-      it('Calls handleUserLeave with correct params from quit', async () => {
+      it('Calls handleUserLeave with correct parameters from QUIT', async () => {
         await quitHandler({ nick: 'someone' });
         assert.calledWithExactly(handleUserLeaveStub, 'someone');
       });
@@ -728,7 +743,7 @@ describe('IRCClient', () => {
         handleUserNewNickStub = sandbox.stub(IRCClient, 'handleUserNewNick');
       });
 
-      it('Calls handleUserNewNick with correct params from nick', async () => {
+      it('Calls handleUserNewNick with correct parameters from NICK', async () => {
         await nickHandler({ nick: 'someone', new_nick: 'new' });
         assert.calledWithExactly(handleUserNewNickStub, 'someone', 'new');
       });
