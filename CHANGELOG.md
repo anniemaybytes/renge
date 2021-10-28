@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v3.0.0
+### Changed
+- Bumped minimum supported Node version to v16.13.0
+- Bumped TypeScript target to ES2021
+
 ## v2.5.0
 ### Added
 - Set up channel modes for session channels at the start of each session
