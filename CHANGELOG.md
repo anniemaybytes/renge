@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v3.2.0
+### Changed
+- Remove Alpine >= 3.13 restriction
+
 ## v3.1.0
 ### Changed
 - Use specific User-Agent
