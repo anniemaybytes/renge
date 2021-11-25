@@ -612,7 +612,7 @@ describe('IRCClient', () => {
       let disconnectHandler: SinonStub;
       beforeEach(() => {
         closeHandler = IRCClient.bot.listeners('close')[0];
-        registeredHandler = IRCClient.bot.listeners('registered')[0];
+        registeredHandler = IRCClient.bot.listeners('registered')[1];
         disconnectHandler = sandbox.stub(IRCClient, 'handleDisconnect');
         sandbox.stub(IRCClient.bot, 'raw');
       });
@@ -633,7 +633,7 @@ describe('IRCClient', () => {
       let registeredHandler: any;
       let botRawStub: SinonStub;
       beforeEach(() => {
-        registeredHandler = IRCClient.bot.listeners('registered')[0];
+        registeredHandler = IRCClient.bot.listeners('registered')[1];
         botRawStub = sandbox.stub(IRCClient.bot, 'raw');
       });
 
