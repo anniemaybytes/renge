@@ -4,7 +4,7 @@ import { spaceNick, getIRCColorFunc, dateToFriendlyString } from '../utils';
 import { getLogger } from '../logger';
 const logger = getLogger('SessionsCommand');
 
-const sessionsMatchRegex = /^!sessions/i;
+const sessionsMatchRegex = /^!sessions$/i;
 
 export function listenForStaffSessions() {
   IRCClient.addMessageHookInChannel(IRCClient.staffSupportChan, sessionsMatchRegex, async (event) => {

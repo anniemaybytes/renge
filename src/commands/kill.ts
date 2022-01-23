@@ -3,7 +3,7 @@ import { SessionManager } from '../handlers/sessionManager';
 import { getLogger } from '../logger';
 const logger = getLogger('KillCommand');
 
-const killMatchRegex = /^!kill\s+(.*)/i;
+const killMatchRegex = /^!kill\s+(\S+)$/i;
 
 export function listenForStaffKill() {
   IRCClient.addMessageHookInChannel(IRCClient.staffSupportChan, killMatchRegex, async (event) => {

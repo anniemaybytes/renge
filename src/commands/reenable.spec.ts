@@ -45,6 +45,7 @@ describe('Reenable', () => {
     let eventReply: SinonStub;
     let queueUserStub: SinonStub;
     let reenableUserStub: SinonStub;
+    let isInQueueStub: SinonStub;
     let isStaffStub: SinonStub;
 
     beforeEach(() => {
@@ -53,6 +54,7 @@ describe('Reenable', () => {
       eventReply = sandbox.stub();
       reenableUserStub = sandbox.stub(ABClient, 'anonymousReEnableUser');
       queueUserStub = sandbox.stub(QueueManager, 'queueUser');
+      isInQueueStub = sandbox.stub(QueueManager, 'isInQueue').returns(false);
       isStaffStub = sandbox.stub(IRCClient, 'isStaff').resolves(false);
     });
 
@@ -67,6 +69,14 @@ describe('Reenable', () => {
       isStaffStub.resolves(true);
       await reenableCallback({ message: '!reenable user', reply: eventReply });
       assert.notCalled(eventReply);
+      assert.notCalled(reenableUserStub);
+      assert.notCalled(queueUserStub);
+    });
+
+    it('Responds and does nothing if user in queue', async () => {
+      isInQueueStub.returns(true);
+      await reenableCallback({ message: '!reenable user', reply: eventReply });
+      assert.calledOnceWithExactly(eventReply, 'You cannot reenable while in queue!');
       assert.notCalled(reenableUserStub);
       assert.notCalled(queueUserStub);
     });

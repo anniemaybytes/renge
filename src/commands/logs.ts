@@ -4,7 +4,7 @@ import { spaceNick, dateToFriendlyString } from '../utils';
 import { getLogger } from '../logger';
 const logger = getLogger('LogsCommand');
 
-const logMatchRegex = /^!logs/i;
+const logMatchRegex = /^!logs$/i;
 
 export function listenForStaffLogs() {
   IRCClient.addMessageHookInChannel(IRCClient.staffSupportChan, logMatchRegex, async (event) => {

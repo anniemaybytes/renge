@@ -5,7 +5,7 @@ import { minutesToString } from '../utils';
 import { getLogger } from '../logger';
 const logger = getLogger('ReenableCommand');
 
-const reenableMatchRegex = /^!reenable(?:\s*(\S+))(?:\s*(.+))?/i;
+const reenableMatchRegex = /^!reenable\s+(\S+)(?:\s+(\S.*))?/i;
 
 function userReenableMessages(username: string) {
   const now = new Date();
@@ -31,6 +31,7 @@ export function listenForUserReenable() {
     if (!matches || (await IRCClient.isStaff(event.nick))) return;
     logger.debug(`User !reenable request for ${matches[1]} from nick ${event.nick}`);
     try {
+      if (QueueManager.isInQueue(event.nick)) return event.reply('You cannot reenable while in queue!');
       const response = await ABClient.anonymousReEnableUser(matches[1]);
       if (response.success) return userReenableMessages(matches[1]).forEach(event.reply);
       if (response.queue) {
@@ -58,7 +59,7 @@ export function listenForStaffReenableInChannel(channel: string) {
     if (!(await IRCClient.isStaff(event.nick))) return;
     logger.debug(`Staff !reenable request for ${matches[1]} from nick ${event.nick}`);
     try {
-      const response = await ABClient.staffReEnableUser(matches[1], event.hostname.split('.')[0], matches[2] || undefined);
+      const response = await ABClient.staffReEnableUser(matches[1], event.hostname.split('.')[0], matches[2]?.trim() || undefined);
       if (response.success) {
         if (isSupportChannel) return userReenableMessages(matches[1]).forEach(event.reply);
         return event.reply('User reenabled!');

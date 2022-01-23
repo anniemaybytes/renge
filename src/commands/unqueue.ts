@@ -3,7 +3,7 @@ import { QueueManager } from '../handlers/queueManager';
 import { getLogger } from '../logger';
 const logger = getLogger('UnqueueCommand');
 
-const unqueueMatchRegex = /^!unqueue(?:\s*(\S+))?/i;
+const unqueueMatchRegex = /^!unqueue(?:\s+(\S+))?$/i;
 
 export function listenForUserUnqueue() {
   IRCClient.addMessageHookInChannel(IRCClient.userSupportChan, unqueueMatchRegex, async (event) => {

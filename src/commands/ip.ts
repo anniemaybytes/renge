@@ -4,7 +4,7 @@ import { SessionManager } from '../handlers/sessionManager';
 import { getLogger } from '../logger';
 const logger = getLogger('IPCommand');
 
-const ipMatchRegex = /^!ip\s+(.*)/i;
+const ipMatchRegex = /^!ip\s+(\S+)$/i;
 
 export function listenForStaffIP() {
   IRCClient.addMessageHookInChannel(IRCClient.staffSupportChan, ipMatchRegex, async (event) => {

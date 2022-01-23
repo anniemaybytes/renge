@@ -4,7 +4,7 @@ import { SessionManager } from '../handlers/sessionManager';
 import { getLogger } from '../logger';
 const logger = getLogger('HandleCommand');
 
-const handleMatchRegex = /^!handle(?:\s*(\S+))?(?:\s*(.+))?/i;
+const handleMatchRegex = /^!handle(?:\s+(\S+))?(?:\s+(\S.*))?$/i;
 
 export function listenForStaffHandle() {
   IRCClient.addMessageHookInChannel(IRCClient.staffSupportChan, handleMatchRegex, async (event) => {

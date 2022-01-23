@@ -4,7 +4,7 @@ import { minutesToString } from '../utils';
 import { getLogger } from '../logger';
 const logger = getLogger('QueueCommand');
 
-const queueMatchRegex = /^!queue(?:\s*(.*))?/i;
+const queueMatchRegex = /^!queue(?:\s+(\S.*))?/i;
 
 export function listenForUserQueue() {
   IRCClient.addMessageHookInChannel(IRCClient.userSupportChan, queueMatchRegex, async (event) => {
@@ -17,7 +17,7 @@ export function listenForUserQueue() {
       );
     if (matches[1].length > 140) return event.reply('Sorry, your reason is a bit too long. Mind cutting it down to 140 characters and trying again?');
     try {
-      if (await QueueManager.queueUser(event.nick, matches[1])) {
+      if (await QueueManager.queueUser(event.nick, matches[1].trim())) {
         return event.reply("You've been added to the queue!");
       }
       return event.reply("You're already in the queue! If you'd like to leave just type !unqueue or part the channel.");
