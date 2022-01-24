@@ -1,7 +1,8 @@
 import { SinonSandbox, createSandbox } from 'sinon';
 import { expect } from 'chai';
-import { Config } from './config';
 import mock from 'mock-fs';
+
+import { Config } from './config.js';
 
 describe('Config', () => {
   let sandbox: SinonSandbox;
@@ -17,29 +18,29 @@ describe('Config', () => {
     sandbox.restore();
   });
 
-  describe('getConfig', () => {
+  describe('get', () => {
     it('Gets config from config.json', () => {
-      expect(Config.getConfig()).to.deep.equal({ some: 'data' });
+      expect(Config.get()).to.deep.equal({ some: 'data' });
     });
 
     it('Uses cached config and only reads from disk once', () => {
-      expect(Config.getConfig()).to.deep.equal({ some: 'data' });
+      expect(Config.get()).to.deep.equal({ some: 'data' });
       mock({ 'config.json': '{"new":"data"}' });
-      expect(Config.getConfig()).to.deep.equal({ some: 'data' });
+      expect(Config.get()).to.deep.equal({ some: 'data' });
     });
   });
 
-  describe('reloadConfig', () => {
+  describe('reload', () => {
     it('Will reload/cache new data from disk for getConfig', () => {
       mock({ 'config.json': '{"new":"data"}' });
-      Config.reloadConfig();
-      expect(Config.getConfig()).to.deep.equal({ new: 'data' });
+      Config.reload();
+      expect(Config.get()).to.deep.equal({ new: 'data' });
     });
 
     it('Will use empty defaults if config file cannot be found', () => {
       mock({});
-      Config.reloadConfig();
-      expect(Config.getConfig()).to.deep.equal({});
+      Config.reload();
+      expect(Config.get()).to.deep.equal({});
     });
   });
 });

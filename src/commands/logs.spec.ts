@@ -1,9 +1,10 @@
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
-import { listenForStaffLogs } from './logs';
-import { IRCClient } from '../clients/irc';
-import { SessionHandler } from '../handlers/sessionHandler';
 
-describe('Logs', () => {
+import { LogsCommand } from './logs.js';
+import { IRCClient } from '../clients/irc.js';
+import { SessionHandler } from '../handlers/session.js';
+
+describe('LogsCommand', () => {
   let sandbox: SinonSandbox;
   let hookStub: SinonStub;
 
@@ -16,27 +17,28 @@ describe('Logs', () => {
     sandbox.restore();
   });
 
-  describe('listenForStaffLogs', () => {
+  describe('register', () => {
     it('Calls addMessageHookInChannel on the IRC bot', () => {
-      listenForStaffLogs();
+      LogsCommand.register();
       assert.calledOnce(hookStub);
     });
   });
 
   describe('StaffLogs', () => {
     let logsCallback: any;
-    let eventReply: SinonStub;
+    let eventReplyStub: SinonStub;
 
     beforeEach(() => {
-      listenForStaffLogs();
+      LogsCommand.register();
       logsCallback = hookStub.getCall(0).args[2];
-      eventReply = sandbox.stub();
+
+      eventReplyStub = sandbox.stub();
       sandbox.replace(SessionHandler, 'previousLogs', []);
     });
 
     it('Responds with appropriate error if no previous logs', async () => {
-      await logsCallback({ reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'No previous logs found!');
+      await logsCallback({ reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'No previous logs found!');
     });
 
     it('Responds with previous logs appropriately', async () => {
@@ -45,14 +47,14 @@ describe('Logs', () => {
         { user: 'nick1', staff: 'staff1', time, paste: 'url1' },
         { user: 'nick2', staff: 'staff2', time, paste: 'url2' },
       ];
-      await logsCallback({ reply: eventReply });
-      assert.calledTwice(eventReply);
+      await logsCallback({ reply: eventReplyStub });
+      assert.calledTwice(eventReplyStub);
       assert.calledWithExactly(
-        eventReply.getCall(0),
+        eventReplyStub.getCall(0),
         '1. Conversation between nick1 and s\u200Bt\u200Ba\u200Bf\u200Bf\u200B1 at 2001-01-01 00:00:00 UTC: url1'
       );
       assert.calledWithExactly(
-        eventReply.getCall(1),
+        eventReplyStub.getCall(1),
         '2. Conversation between nick2 and s\u200Bt\u200Ba\u200Bf\u200Bf\u200B2 at 2001-01-01 00:00:00 UTC: url2'
       );
     });

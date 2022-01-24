@@ -1,8 +1,9 @@
-import { LevelDB } from '../clients/leveldb';
-import { SessionHandler } from './sessionHandler';
-import { IRCClient } from '../clients/irc';
-import { getLogger } from '../logger';
-const logger = getLogger('SessionManager');
+import { LevelDB } from '../clients/leveldb.js';
+import { SessionHandler } from '../handlers/session.js';
+import { IRCClient } from '../clients/irc.js';
+
+import { Logger } from '../logger.js';
+const logger = Logger.get('SessionManager');
 
 const ActiveSessionsKey = 'sessions::activeSessions';
 
@@ -10,7 +11,7 @@ export class SessionManager {
   public static activeSupportSessions: { [chan: string]: SessionHandler } = {};
 
   // Needs to be called on startup to load previously active sessions from state
-  public static async initSessionManager() {
+  public static async start() {
     await SessionHandler.initPreviousLogs();
     let activeSessions = [];
     try {

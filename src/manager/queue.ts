@@ -1,7 +1,7 @@
-import { LevelDB } from '../clients/leveldb';
-import { IRCClient } from '../clients/irc';
-import { sleep } from '../utils';
-import type { QueuedUser } from '../types';
+import { LevelDB } from '../clients/leveldb.js';
+import { IRCClient } from '../clients/irc.js';
+import { Utils } from '../utils.js';
+import { QueuedUser } from '../types.js';
 
 const QueueKey = 'queue::queuedUsers';
 
@@ -28,7 +28,7 @@ export class QueueManager {
 
   // Needs to be called on startup to set up callbacks in the IRC client and load queue from state
   // Note that this needs to be called after LevelDB has been init, but before IRC connects
-  public static async initQueue() {
+  public static async start() {
     await QueueManager.loadQueueFromState();
     // Set up IRC client callbacks
     IRCClient.addUserRenameHandler(QueueManager.renameUser);
@@ -74,7 +74,7 @@ export class QueueManager {
         `Hi ${nick}! If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.`
       );
       // Sleep to allow chanserv or whatnot to add op before adding unqueued user which checks for channel op status
-      await sleep(5000);
+      await Utils.sleep(5000);
       await QueueManager.addUnqueuedUser(nick);
     }
   }

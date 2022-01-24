@@ -1,14 +1,15 @@
-import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
+import { expect } from 'chai';
 import mock from 'mock-fs';
 import fs from 'fs';
-import { IRCClient } from '../clients/irc';
-import { LevelDB } from '../clients/leveldb';
-import { ABClient } from '../clients/animebytes';
-import * as reenable from '../commands/reenable';
-import * as utils from '../utils';
-import { QueueManager } from './queueManager';
-import { SessionHandler } from './sessionHandler';
+
+import { IRCClient } from '../clients/irc.js';
+import { LevelDB } from '../clients/leveldb.js';
+import { ABClient } from '../clients/animebytes.js';
+import { ReenableCommand } from '../commands/reenable.js';
+import { Utils } from '../utils.js';
+import { QueueManager } from '../manager/queue.js';
+import { SessionHandler } from './session.js';
 
 describe('SessionHandler', () => {
   let sandbox: SinonSandbox;
@@ -61,15 +62,16 @@ describe('SessionHandler', () => {
     let addUserJoinHandlerStub: SinonStub;
     let addUserLeaveHandlerStub: SinonStub;
     let addUserRenameHandlerStub: SinonStub;
+
     beforeEach(() => {
-      listenForStaffReenableInChannelStub = sandbox.stub(reenable, 'listenForStaffReenableInChannel').returns(1 as any);
+      listenForStaffReenableInChannelStub = sandbox.stub(ReenableCommand, 'inChannel').returns(1 as any);
       addMsgHookStub = sandbox.stub(IRCClient, 'addMessageHookInChannel').returns(2 as any);
       addConnectHandlerStub = sandbox.stub(IRCClient, 'addConnectHandler').returns(3 as any);
       addDisconnectHandlerStub = sandbox.stub(IRCClient, 'addDisconnectHandler').returns(4 as any);
       addUserJoinHandlerStub = sandbox.stub(IRCClient, 'addUserJoinHandler').returns(5 as any);
       addUserLeaveHandlerStub = sandbox.stub(IRCClient, 'addUserLeaveHandler').returns(6 as any);
       addUserRenameHandlerStub = sandbox.stub(IRCClient, 'addUserRenameHandler').returns(7 as any);
-      sandbox.stub(utils, 'randomIRCColor').returns('blue');
+      sandbox.stub(Utils, 'randomIRCColor').returns('blue');
     });
 
     it('Returns a session with correct properties set from input', () => {
@@ -113,8 +115,9 @@ describe('SessionHandler', () => {
     let addUserRenameHandlerStub: SinonStub;
     let messageStub: SinonStub;
     let dbPutStub: SinonStub;
+
     beforeEach(() => {
-      listenForStaffReenableInChannelStub = sandbox.stub(reenable, 'listenForStaffReenableInChannel').returns(1 as any);
+      listenForStaffReenableInChannelStub = sandbox.stub(ReenableCommand, 'inChannel').returns(1 as any);
       addMsgHookStub = sandbox.stub(IRCClient, 'addMessageHookInChannel').returns(2 as any);
       addConnectHandlerStub = sandbox.stub(IRCClient, 'addConnectHandler').returns(3 as any);
       addDisconnectHandlerStub = sandbox.stub(IRCClient, 'addDisconnectHandler').returns(4 as any);
@@ -204,8 +207,9 @@ describe('SessionHandler', () => {
     let addUserJoinHandlerStub: SinonStub;
     let addUserLeaveHandlerStub: SinonStub;
     let addUserRenameHandlerStub: SinonStub;
+
     beforeEach(() => {
-      sandbox.stub(reenable, 'listenForStaffReenableInChannel').returns(1 as any);
+      sandbox.stub(ReenableCommand, 'inChannel').returns(1 as any);
       addMsgHookStub = sandbox.stub(IRCClient, 'addMessageHookInChannel').returns(2 as any);
       addConnectHandlerStub = sandbox.stub(IRCClient, 'addConnectHandler').returns(3 as any);
       addDisconnectHandlerStub = sandbox.stub(IRCClient, 'addDisconnectHandler').returns(4 as any);

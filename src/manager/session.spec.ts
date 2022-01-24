@@ -1,9 +1,10 @@
-import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
-import { SessionManager } from './sessionManager';
-import { SessionHandler } from './sessionHandler';
-import { IRCClient } from '../clients/irc';
-import { LevelDB } from '../clients/leveldb';
+import { expect } from 'chai';
+
+import { SessionManager } from './session.js';
+import { SessionHandler } from '../handlers/session.js';
+import { IRCClient } from '../clients/irc.js';
+import { LevelDB } from '../clients/leveldb.js';
 
 describe('SessionManager', () => {
   let sandbox: SinonSandbox;
@@ -16,7 +17,7 @@ describe('SessionManager', () => {
     sandbox.restore();
   });
 
-  describe('initSessionManager', () => {
+  describe('start', () => {
     let mockSupportSession: any;
     let mockDBGet: SinonStub;
     let initPreviousLogs: SinonStub;
@@ -35,14 +36,14 @@ describe('SessionManager', () => {
     });
 
     it('Calls initPreviousLogs on SupportSession', async () => {
-      await SessionManager.initSessionManager();
+      await SessionManager.start();
       assert.calledOnce(initPreviousLogs);
     });
 
     it('Throws error if db get fails for session keys', async () => {
       mockDBGet.throws('err');
       try {
-        await SessionManager.initSessionManager();
+        await SessionManager.start();
       } catch (e) {
         return;
       }
@@ -51,12 +52,12 @@ describe('SessionManager', () => {
 
     it('Does not throw if db get fails with not found', async () => {
       mockDBGet.throws({ type: 'NotFoundError' });
-      await SessionManager.initSessionManager();
+      await SessionManager.start();
     });
 
     it('Gets subsequent keys from active sessions in db', async () => {
       mockDBGet.onFirstCall().returns(['key1']);
-      await SessionManager.initSessionManager();
+      await SessionManager.start();
       assert.calledWithExactly(mockDBGet.getCall(0), 'sessions::activeSessions');
       assert.calledWithExactly(mockDBGet.getCall(1), 'key1');
     });
@@ -65,7 +66,7 @@ describe('SessionManager', () => {
       mockDBGet.onFirstCall().returns(['key1']);
       mockDBGet.onSecondCall().throws('err');
       try {
-        await SessionManager.initSessionManager();
+        await SessionManager.start();
       } catch (e) {
         return;
       }
@@ -76,7 +77,7 @@ describe('SessionManager', () => {
       const sessionData = { chan: 'chan' };
       mockDBGet.onFirstCall().returns(['key1']);
       mockDBGet.onSecondCall().returns(sessionData);
-      await SessionManager.initSessionManager();
+      await SessionManager.start();
       expect(mockFromState.getCall(0).args[0]).to.deep.equal(sessionData);
       assert.calledOnce(mockSupportSession.checkIfInProgress);
     });
@@ -84,7 +85,7 @@ describe('SessionManager', () => {
     it('Kicks users from support session channels that are not active', async () => {
       IRCClient.supportSessionChannels = ['chan'];
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['nick']) });
-      await SessionManager.initSessionManager();
+      await SessionManager.start();
       assert.calledOnceWithExactly(isMeStub, 'nick');
       assert.calledOnceWithExactly(kickUserStub, 'chan', 'nick');
     });

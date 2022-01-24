@@ -1,10 +1,12 @@
 import * as irc from 'irc-framework';
-import { sleep, matchIRCHostMask } from '../utils';
 import { promisify } from 'util';
-import { Config } from './config';
-import { MessageEvent, WHOResponse, WHOISResponse } from '../types';
-import { getLogger } from '../logger';
-const logger = getLogger('IRCClient');
+
+import { Utils } from '../utils.js';
+import { Config } from './config.js';
+import { MessageEvent, WHOResponse, WHOISResponse } from '../types.js';
+
+import { Logger } from '../logger.js';
+const logger = Logger.get('IRCClient');
 
 const ircClient = new irc.Client({ auto_reconnect: false });
 ircClient.who[promisify.custom] = (target: string) =>
@@ -19,7 +21,7 @@ ircClient.whois[promisify.custom] = (target: string) =>
     setTimeout(() => reject(new Error('WHOIS took too long, nick is probably offline')), 2000);
     ircClient.whois(target, resolve);
   });
-const configFile = Config.getConfig();
+const configFile = Config.get();
 
 export class IRCClient {
   public static IRC_NICK = configFile.irc_nick || 'renge';
@@ -81,7 +83,7 @@ export class IRCClient {
           rejectUnauthorized: IRCClient.IRC_VERIFY_SSL,
         });
       }
-      await sleep(5000);
+      await Utils.sleep(5000);
     }
   }
 
@@ -168,7 +170,9 @@ export class IRCClient {
 
   public static async isStaff(nick: string) {
     const whoIsResponse = await IRCClient.whois(nick);
-    return IRCClient.staffHostMasks.some((hostMask) => matchIRCHostMask(hostMask, whoIsResponse.nick, whoIsResponse.ident, whoIsResponse.hostname));
+    return IRCClient.staffHostMasks.some((hostMask) =>
+      Utils.matchIRCHostMask(hostMask, whoIsResponse.nick, whoIsResponse.ident, whoIsResponse.hostname)
+    );
   }
 
   // Blindly kick a user from a channel with SAPART. Does not check for success
@@ -177,7 +181,7 @@ export class IRCClient {
   }
 
   public static async waitUntilJoined() {
-    while (!IRCClient.joined) await sleep(100);
+    while (!IRCClient.joined) await Utils.sleep(100);
   }
 
   public static rawCommand(...command: string[]) {

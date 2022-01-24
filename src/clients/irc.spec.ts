@@ -1,6 +1,7 @@
-import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
-import { IRCClient } from './irc';
+import { expect } from 'chai';
+
+import { IRCClient } from './irc.js';
 
 describe('IRCClient', () => {
   let sandbox: SinonSandbox;

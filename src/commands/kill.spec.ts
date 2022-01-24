@@ -1,9 +1,9 @@
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
-import { listenForStaffKill } from './kill';
-import { IRCClient } from '../clients/irc';
-import { SessionManager } from '../handlers/sessionManager';
+import { KillCommand } from './kill.js';
+import { IRCClient } from '../clients/irc.js';
+import { SessionManager } from '../manager/session.js';
 
-describe('Kill', () => {
+describe('KillCommand', () => {
   let sandbox: SinonSandbox;
   let hookStub: SinonStub;
 
@@ -16,48 +16,49 @@ describe('Kill', () => {
     sandbox.restore();
   });
 
-  describe('listenForStaffKill', () => {
+  describe('register', () => {
     it('Calls addMessageHookInChannel on the IRC bot', () => {
-      listenForStaffKill();
+      KillCommand.register();
       assert.calledOnce(hookStub);
     });
   });
 
   describe('StaffKill', () => {
     let killCallback: any;
-    let eventReply: SinonStub;
+    let eventReplyStub: SinonStub;
     let fakeSession: any;
 
     beforeEach(() => {
-      listenForStaffKill();
+      KillCommand.register();
       killCallback = hookStub.getCall(0).args[2];
-      eventReply = sandbox.stub();
+
+      eventReplyStub = sandbox.stub();
       fakeSession = { ircChannel: 'chan', ended: false, endSession: sandbox.stub() };
       sandbox.replace(SessionManager, 'activeSupportSessions', {});
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await killCallback({ message: 'badMessage', reply: eventReply });
-      assert.notCalled(eventReply);
+      await killCallback({ message: 'badMessage', reply: eventReplyStub });
+      assert.notCalled(eventReplyStub);
     });
 
     it('Responds with appropriate error if active session with provided name not found', async () => {
-      await killCallback({ message: '!kill badchan', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'badchan is not a valid active session!');
+      await killCallback({ message: '!kill badchan', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'badchan is not a valid active session!');
     });
 
     it('Calls endSession and responds correctly for matching sessions', async () => {
       SessionManager.activeSupportSessions['chan'] = fakeSession;
-      await killCallback({ message: '!kill chan', reply: eventReply });
+      await killCallback({ message: '!kill chan', reply: eventReplyStub });
       assert.calledOnce(fakeSession.endSession);
-      assert.calledOnceWithExactly(eventReply, 'chan session has been ended');
+      assert.calledOnceWithExactly(eventReplyStub, 'chan session has been ended');
     });
 
     it('Responds with error if ending session fails', async () => {
       SessionManager.activeSupportSessions['chan'] = fakeSession;
       fakeSession.endSession.throws('err');
-      await killCallback({ message: '!kill chan', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'There was an unexpected error killing the session. Please try again');
+      await killCallback({ message: '!kill chan', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'There was an unexpected error killing the session. Please try again');
     });
   });
 });

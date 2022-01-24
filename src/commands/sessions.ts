@@ -1,25 +1,28 @@
-import { IRCClient } from '../clients/irc';
-import { SessionManager } from '../handlers/sessionManager';
-import { spaceNick, getIRCColorFunc, dateToFriendlyString } from '../utils';
-import { getLogger } from '../logger';
-const logger = getLogger('SessionsCommand');
+import { IRCClient } from '../clients/irc.js';
+import { SessionManager } from '../manager/session.js';
+import { Utils } from '../utils.js';
 
-const sessionsMatchRegex = /^!sessions$/i;
+import { Logger } from '../logger.js';
+const logger = Logger.get('SessionsCommand');
 
-export function listenForStaffSessions() {
-  IRCClient.addMessageHookInChannel(IRCClient.staffSupportChan, sessionsMatchRegex, async (event) => {
-    logger.debug(`Staff !sessions request from nick ${event.nick}`);
-    const activeSessions = Object.values(SessionManager.activeSupportSessions).filter((sess) => !sess.ended);
-    if (!activeSessions.length) {
-      event.reply('No active sessions');
-    } else {
-      activeSessions.forEach((sess) => {
-        event.reply(
-          `${getIRCColorFunc(sess.color)(sess.ircChannel)} - ${spaceNick(sess.staffHandlerNick)} helping ${
-            sess.userClientNick
-          } started ${dateToFriendlyString(new Date(sess.startTime))} reason: ${sess.reason}`
-        );
-      });
-    }
-  });
+export class SessionsCommand {
+  private static regex = /^!sessions$/i;
+
+  public static register() {
+    IRCClient.addMessageHookInChannel(IRCClient.staffSupportChan, SessionsCommand.regex, async (event) => {
+      logger.debug(`Staff !sessions request from nick ${event.nick}`);
+      const activeSessions = Object.values(SessionManager.activeSupportSessions).filter((sess) => !sess.ended);
+      if (!activeSessions.length) {
+        event.reply('No active sessions');
+      } else {
+        activeSessions.forEach((sess) => {
+          event.reply(
+            `${Utils.getIRCColorFunc(sess.color)(sess.ircChannel)} - ${Utils.space(sess.staffHandlerNick)} helping ${
+              sess.userClientNick
+            } started ${Utils.dateToFriendlyString(new Date(sess.startTime))} reason: ${sess.reason}`
+          );
+        });
+      }
+    });
+  }
 }

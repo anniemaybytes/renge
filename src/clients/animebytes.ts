@@ -1,19 +1,22 @@
 import got from 'got';
-import { Config } from './config';
-import { getLogger } from '../logger';
-import type { ReEnableResponse } from '../types';
-const logger = getLogger('AnimeBytesClient');
+
+import { Config } from './config.js';
+import { ReEnableResponse } from '../types';
+
+import { Logger } from '../logger.js';
+const logger = Logger.get('ABClient');
+
+const REQUEST_TIMEOUT_MS = 1000 * 30; // 30 seconds
 
 export class ABClient {
-  public static REQUEST_TIMEOUT_MS = 1000 * 30; // 30 seconds
   public static got = got.extend({
     headers: { 'User-Agent': 'renge/2.0 (got [ABClient])' },
     followRedirect: false,
     throwHttpErrors: false,
-    timeout: ABClient.REQUEST_TIMEOUT_MS,
+    timeout: { request: REQUEST_TIMEOUT_MS },
   });
   public static url = 'https://animebytes.tv';
-  public static siteApiKey = Config.getConfig().site_api_key || '';
+  public static siteApiKey = Config.get().site_api_key || '';
 
   public static async staffReEnableUser(username: string, staffUser: string, reason?: string) {
     return (await ABClient.makeRequest(`/api/reenable/${username}/staff`, {

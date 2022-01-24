@@ -1,9 +1,10 @@
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
-import { listenForStaffSessions } from './sessions';
-import { IRCClient } from '../clients/irc';
-import { SessionManager } from '../handlers/sessionManager';
 
-describe('Sessions', () => {
+import { SessionsCommand } from './sessions.js';
+import { IRCClient } from '../clients/irc.js';
+import { SessionManager } from '../manager/session.js';
+
+describe('SessionsCommand', () => {
   let sandbox: SinonSandbox;
   let hookStub: SinonStub;
 
@@ -16,28 +17,29 @@ describe('Sessions', () => {
     sandbox.restore();
   });
 
-  describe('listenForStaffSessions', () => {
+  describe('register', () => {
     it('Calls addMessageHookInChannel on the IRC bot', () => {
-      listenForStaffSessions();
+      SessionsCommand.register();
       assert.calledOnce(hookStub);
     });
   });
 
   describe('StaffSessions', () => {
     let sessionsCallback: any;
-    let eventReply: SinonStub;
+    let eventReplyStub: SinonStub;
 
     beforeEach(() => {
-      listenForStaffSessions();
+      SessionsCommand.register();
       sessionsCallback = hookStub.getCall(0).args[2];
-      eventReply = sandbox.stub();
+
+      eventReplyStub = sandbox.stub();
       sandbox.replace(SessionManager, 'activeSupportSessions', {});
     });
 
     it('Responds with no active sessions if no sessions', async () => {
       SessionManager.activeSupportSessions['chan'] = { ended: true } as any;
-      await sessionsCallback({ reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'No active sessions');
+      await sessionsCallback({ reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'No active sessions');
     });
 
     it('Responds with a list of valid active sessions', async () => {
@@ -59,14 +61,14 @@ describe('Sessions', () => {
         startTime: '2000-01-01T00:00:00.000Z',
         reason: 'reason',
       } as any;
-      await sessionsCallback({ reply: eventReply });
-      assert.calledTwice(eventReply);
+      await sessionsCallback({ reply: eventReplyStub });
+      assert.calledTwice(eventReplyStub);
       assert.calledWith(
-        eventReply,
+        eventReplyStub,
         '\x0312chan1\x03 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B1 helping user1 started 2000-01-01 00:00:00 UTC reason: reason'
       );
       assert.calledWith(
-        eventReply,
+        eventReplyStub,
         '\x0312chan2\x03 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B2 helping user2 started 2000-01-01 00:00:00 UTC reason: reason'
       );
     });

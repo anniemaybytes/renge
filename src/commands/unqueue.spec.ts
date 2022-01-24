@@ -1,9 +1,10 @@
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
-import { listenForStaffUnqueue, listenForUserUnqueue } from './unqueue';
-import { IRCClient } from '../clients/irc';
-import { QueueManager } from '../handlers/queueManager';
 
-describe('Unqueue', () => {
+import { UnqueueCommand } from './unqueue.js';
+import { IRCClient } from '../clients/irc.js';
+import { QueueManager } from '../manager/queue.js';
+
+describe('UnqueueCommand', () => {
   let sandbox: SinonSandbox;
   let hookStub: SinonStub;
 
@@ -16,113 +17,107 @@ describe('Unqueue', () => {
     sandbox.restore();
   });
 
-  describe('listenForStaffUnqueue', () => {
+  describe('register', () => {
     it('Calls addMessageHookInChannel on the IRC bot', () => {
-      listenForStaffUnqueue();
-      assert.calledOnce(hookStub);
-    });
-  });
-
-  describe('listenForUserUnqueue', () => {
-    it('Calls addMessageHookInChannel on the IRC bot', () => {
-      listenForUserUnqueue();
-      assert.calledOnce(hookStub);
+      UnqueueCommand.register();
+      assert.calledTwice(hookStub);
     });
   });
 
   describe('UserUnqueue', () => {
     let unqueueCallback: any;
-    let eventReply: SinonStub;
+    let eventReplyStub: SinonStub;
     let unqueueUserStub: SinonStub;
     let addUnqueuedUserStub: SinonStub;
 
     beforeEach(() => {
-      listenForUserUnqueue();
+      UnqueueCommand.register();
       unqueueCallback = hookStub.getCall(0).args[2];
-      eventReply = sandbox.stub();
+
+      eventReplyStub = sandbox.stub();
       unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
       addUnqueuedUserStub = sandbox.stub(QueueManager, 'addUnqueuedUser');
     });
 
     it('Calls unqueue user on the queue for the nick', async () => {
-      await unqueueCallback({ nick: 'nick', reply: eventReply });
+      await unqueueCallback({ nick: 'nick', reply: eventReplyStub });
       assert.calledOnceWithExactly(unqueueUserStub, undefined, 'nick');
     });
 
     it('Calls addUnqueuedUser user on the queue for unqueued user', async () => {
-      await unqueueCallback({ nick: 'nick', reply: eventReply });
+      await unqueueCallback({ nick: 'nick', reply: eventReplyStub });
       assert.calledOnceWithExactly(addUnqueuedUserStub, 'nick');
     });
 
     it('Responds appropriately if successfully unqueued', async () => {
-      await unqueueCallback({ nick: 'nick', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, "You've been removed from the queue!");
+      await unqueueCallback({ nick: 'nick', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, "You've been removed from the queue!");
     });
 
     it('Responds appropriately if unsuccessfully unqueued', async () => {
       unqueueUserStub.throws('err');
-      await unqueueCallback({ nick: 'nick', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, "You're not in the queue!");
+      await unqueueCallback({ nick: 'nick', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, "You're not in the queue!");
     });
   });
 
   describe('StaffUnqueue', () => {
     let unqueueCallback: any;
-    let eventReply: SinonStub;
+    let eventReplyStub: SinonStub;
     let unqueueUserStub: SinonStub;
     let addUnqueuedUserStub: SinonStub;
 
     beforeEach(() => {
-      listenForStaffUnqueue();
-      unqueueCallback = hookStub.getCall(0).args[2];
-      eventReply = sandbox.stub();
+      UnqueueCommand.register();
+      unqueueCallback = hookStub.getCall(1).args[2];
+      eventReplyStub = sandbox.stub();
       unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
       addUnqueuedUserStub = sandbox.stub(QueueManager, 'addUnqueuedUser');
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await unqueueCallback({ message: 'badMessage', reply: eventReply });
-      assert.notCalled(eventReply);
+      await unqueueCallback({ message: 'badMessage', reply: eventReplyStub });
+      assert.notCalled(eventReplyStub);
       assert.notCalled(unqueueUserStub);
       assert.notCalled(addUnqueuedUserStub);
     });
 
     it('Responds with help if no position is provided', async () => {
-      await unqueueCallback({ message: '!unqueue', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'Please provide a valid position number to unqueue');
+      await unqueueCallback({ message: '!unqueue', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'Please provide a valid position number to unqueue');
     });
 
     it('Responds with help if position provided is not a valid number', async () => {
-      await unqueueCallback({ message: '!unqueue banana', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'Please provide a valid position number to unqueue');
+      await unqueueCallback({ message: '!unqueue banana', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'Please provide a valid position number to unqueue');
     });
 
     it('Responds with help if position provided is not above 0', async () => {
-      await unqueueCallback({ message: '!unqueue -1', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'Please provide a valid position number to unqueue');
+      await unqueueCallback({ message: '!unqueue -1', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'Please provide a valid position number to unqueue');
     });
 
     it('Calls unqueue with a position', async () => {
-      await unqueueCallback({ message: '!unqueue 2', reply: eventReply });
+      await unqueueCallback({ message: '!unqueue 2', reply: eventReplyStub });
       assert.calledOnceWithExactly(unqueueUserStub, 1);
     });
 
     it('Calls addUnqueuedUser user on the queue for unqueued user', async () => {
       unqueueUserStub.resolves({ nick: 'nick' });
-      await unqueueCallback({ message: '!unqueue 2', reply: eventReply });
+      await unqueueCallback({ message: '!unqueue 2', reply: eventReplyStub });
       assert.calledOnceWithExactly(addUnqueuedUserStub, 'nick');
     });
 
     it('Responds appropriately if successfully unqueued', async () => {
       unqueueUserStub.resolves({ nick: 'nick' });
-      await unqueueCallback({ message: '!unqueue 2', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'Removed nick from the queue');
+      await unqueueCallback({ message: '!unqueue 2', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'Removed nick from the queue');
     });
 
     it('Responds appropriately if unsuccessfully unqueued', async () => {
       unqueueUserStub.throws('err');
-      await unqueueCallback({ message: '!unqueue 2', reply: eventReply });
-      assert.calledOnceWithExactly(eventReply, 'err');
+      await unqueueCallback({ message: '!unqueue 2', reply: eventReplyStub });
+      assert.calledOnceWithExactly(eventReplyStub, 'err');
     });
   });
 });

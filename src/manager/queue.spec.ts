@@ -1,11 +1,12 @@
-import { expect } from 'chai';
 import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
-import { IRCClient } from '../clients/irc';
-import { LevelDB } from '../clients/leveldb';
-import * as utils from '../utils';
-import { QueueManager } from './queueManager';
+import { expect } from 'chai';
 
-describe('SupportQueue', () => {
+import { IRCClient } from '../clients/irc.js';
+import { LevelDB } from '../clients/leveldb.js';
+import { Utils } from '../utils.js';
+import { QueueManager } from './queue.js';
+
+describe('QueueManager', () => {
   let sandbox: SinonSandbox;
 
   beforeEach(() => {
@@ -47,21 +48,21 @@ describe('SupportQueue', () => {
     });
 
     it('Loads queue from db state', async () => {
-      await QueueManager.initQueue();
+      await QueueManager.start();
       assert.calledOnceWithExactly(mockDBGet, 'queue::queuedUsers');
       expect(QueueManager.queue).to.deep.equal([{ nick: 'nick', reason: 'reason', time: new Date('2000-01-01T00:00:00.000Z'), ip: 'ip' }]);
     });
 
     it('Sets queue to empty if db get throws not found', async () => {
       mockDBGet.throws({ type: 'NotFoundError' });
-      await QueueManager.initQueue();
+      await QueueManager.start();
       expect(QueueManager.queue).to.deep.equal([]);
     });
 
     it('Throws if there was an error loading from the db', async () => {
       mockDBGet.throws('err');
       try {
-        await QueueManager.initQueue();
+        await QueueManager.start();
       } catch (e) {
         return;
       }
@@ -69,18 +70,18 @@ describe('SupportQueue', () => {
     });
 
     it('Adds IRC user rename handler', async () => {
-      await QueueManager.initQueue();
+      await QueueManager.start();
       assert.calledOnceWithExactly(mockAddRename, QueueManager.renameUser);
     });
 
     it('Adds IRC user join handler', async () => {
-      await QueueManager.initQueue();
+      await QueueManager.start();
       assert.calledOnceWithExactly(mockAddJoin, QueueManager.userJoinHandler);
     });
 
     it('Adds IRC user leave handler which does nothing if not support channel', async () => {
       const unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
-      await QueueManager.initQueue();
+      await QueueManager.start();
       assert.calledOnce(mockAddLeave);
       await mockAddLeave.getCall(0).args[0]('nick', 'randomchan');
       assert.notCalled(unqueueUserStub);
@@ -89,7 +90,7 @@ describe('SupportQueue', () => {
     it('Adds IRC user leave handler which removes queued/unqueued user', async () => {
       const unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
       sandbox.replace(QueueManager, 'unqueuedUsers', { nick: setTimeout(() => '', 0) });
-      await QueueManager.initQueue();
+      await QueueManager.start();
       assert.calledOnce(mockAddLeave);
       await mockAddLeave.getCall(0).args[0]('nick', 'chan');
       assert.calledOnce(unqueueUserStub);
@@ -98,14 +99,14 @@ describe('SupportQueue', () => {
 
     it('Adds IRC disconnect handler which removes all unqueued users', async () => {
       sandbox.replace(QueueManager, 'unqueuedUsers', { nick: setTimeout(() => '', 0) });
-      await QueueManager.initQueue();
+      await QueueManager.start();
       assert.calledOnce(mockAddDisconnect);
       mockAddDisconnect.getCall(0).args[0]();
       expect(QueueManager.unqueuedUsers).to.deep.equal({});
     });
 
     it('Adds IRC connect handler', async () => {
-      await QueueManager.initQueue();
+      await QueueManager.start();
       assert.calledOnceWithExactly(mockAddConnect, QueueManager.nowConnected);
     });
   });
@@ -158,7 +159,7 @@ describe('SupportQueue', () => {
       isStaffStub = sandbox.stub(IRCClient, 'isStaff').resolves(false);
       messageStub = sandbox.stub(IRCClient, 'message');
       addUnqueuedUserStub = sandbox.stub(QueueManager, 'addUnqueuedUser');
-      sandbox.stub(utils, 'sleep');
+      sandbox.stub(Utils, 'sleep');
     });
 
     it('Does nothing if not support channel', async () => {

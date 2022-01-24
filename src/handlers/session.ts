@@ -1,20 +1,22 @@
 import path from 'path';
-import { mkdirSync, lstatSync, promises } from 'fs';
 import crypto from 'crypto';
-import { LevelDB } from '../clients/leveldb';
-import { Config } from '../clients/config';
-import { IRCClient } from '../clients/irc';
-import { ABClient } from '../clients/animebytes';
-import { QueueManager } from './queueManager';
-import { listenForStaffReenableInChannel } from '../commands/reenable';
-import { getIRCColorFunc, randomIRCColor, spaceNick, dateToFriendlyString } from '../utils';
-import { getLogger } from '../logger';
-import type { PreviousLog } from '../types';
-const logger = getLogger('SessionHandler');
+import { mkdirSync, lstatSync, promises } from 'fs';
+
+import { LevelDB } from '../clients/leveldb.js';
+import { Config } from '../clients/config.js';
+import { IRCClient } from '../clients/irc.js';
+import { ABClient } from '../clients/animebytes.js';
+import { QueueManager } from '../manager/queue.js';
+import { ReenableCommand } from '../commands/reenable.js';
+import { Utils } from '../utils.js';
+import { PreviousLog } from '../types.js';
+
+import { Logger } from '../logger.js';
+const logger = Logger.get('SessionHandler');
 
 const PreviousSessionLogsKey = 'sessions::previousLogs';
 
-const logsDir = Config.getConfig().logs_dir || 'logs';
+const logsDir = Config.get().logs_dir || 'logs';
 // Make sure logs dir exists
 try {
   mkdirSync(logsDir, { recursive: true });
@@ -59,7 +61,7 @@ export class SessionHandler {
     session.reason = reason;
     session.log = [];
     session.startTime = new Date().toISOString();
-    session.color = randomIRCColor();
+    session.color = Utils.randomIRCColor();
     session.cleanupCallbacks = new Set([removalCallback]);
     session.ended = false;
     session.started = false;
@@ -115,7 +117,7 @@ export class SessionHandler {
         await this.checkIfInProgress();
       }
     };
-    this.cleanupCallbacks.add(listenForStaffReenableInChannel(this.ircChannel));
+    this.cleanupCallbacks.add(ReenableCommand.inChannel(this.ircChannel));
     this.cleanupCallbacks.add(IRCClient.addMessageHookInChannel(this.ircChannel, /.*/, msgHandler.bind(this)));
     this.cleanupCallbacks.add(IRCClient.addConnectHandler(connectHandler.bind(this)));
     this.cleanupCallbacks.add(IRCClient.addDisconnectHandler(disconnectHandler.bind(this)));
@@ -157,11 +159,14 @@ export class SessionHandler {
   }
 
   public async logMsg(msg: string) {
-    this.log.push(`${dateToFriendlyString(new Date())} | ${msg}`);
+    this.log.push(`${Utils.dateToFriendlyString(new Date())} | ${msg}`);
     try {
       IRCClient.message(
         IRCClient.supportLogChan,
-        `${getIRCColorFunc(this.color)(this.ircChannel)} - ${msg.replace(new RegExp(this.staffHandlerNick, 'gi'), spaceNick(this.staffHandlerNick))}`
+        `${Utils.getIRCColorFunc(this.color)(this.ircChannel)} - ${msg.replace(
+          new RegExp(this.staffHandlerNick, 'gi'),
+          Utils.space(this.staffHandlerNick)
+        )}`
       );
     } catch (e) {
       logger.warn('Unable to send message to log channel');
@@ -223,7 +228,7 @@ export class SessionHandler {
       try {
         IRCClient.message(
           IRCClient.supportLogChan,
-          `Support conversation in ${this.ircChannel} between ${this.userClientNick} and ${spaceNick(this.staffHandlerNick)} complete. ${
+          `Support conversation in ${this.ircChannel} between ${this.userClientNick} and ${Utils.space(this.staffHandlerNick)} complete. ${
             pasteURL ? `A log can be found at ${pasteURL}` : 'I could not properly upload the logs, but they should be saved locally.'
           }`
         );
