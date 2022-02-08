@@ -1,7 +1,8 @@
-import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub, assert, match } from 'sinon';
 import { expect } from 'chai';
 
 import { ReenableCommand } from './reenable.js';
+import { LevelDB } from '../clients/leveldb.js';
 import { IRCClient } from '../clients/irc.js';
 import { ABClient } from '../clients/animebytes.js';
 import { QueueManager } from '../manager/queue.js';
@@ -20,9 +21,38 @@ describe('ReenableCommand', () => {
   });
 
   describe('register', () => {
-    it('Calls addMessageHookInChannel on the IRC bot', () => {
-      ReenableCommand.register();
+    let putStub: SinonStub;
+    let getStub: SinonStub;
+
+    beforeEach(() => {
+      putStub = sandbox.stub(LevelDB, 'put');
+      getStub = sandbox.stub(LevelDB, 'get').resolves({});
+    });
+
+    it('Calls addMessageHookInChannel on the IRC bot', async () => {
+      await ReenableCommand.register();
       assert.calledTwice(hookStub);
+    });
+
+    it('Retrieves and sets error cache from state', async () => {
+      const fakeDate = new Date('2020-02-02T02:02:02.000Z');
+      sandbox.useFakeTimers(fakeDate);
+      getStub.resolves({ userHost: { fails: 3, last: fakeDate.toJSON() } });
+      await ReenableCommand.register();
+      expect(ReenableCommand.errorCache).to.haveOwnProperty('userHost');
+    });
+
+    it('Handles missing cache state when loading', async () => {
+      getStub.throws({ type: 'NotFoundError' });
+      await ReenableCommand.register();
+      expect(ReenableCommand.errorCache).to.be.empty;
+    });
+
+    it('Sweeps and saves updated error cache when loading', async () => {
+      getStub.resolves({ userHost: { fails: 3, last: '2020-02-02T02:02:02.000Z' } });
+      await ReenableCommand.register();
+      expect(ReenableCommand.errorCache).to.be.empty;
+      assert.calledWithExactly(putStub, match.any, {});
     });
   });
 
@@ -42,8 +72,10 @@ describe('ReenableCommand', () => {
     let isInQueueStub: SinonStub;
     let isStaffStub: SinonStub;
 
-    beforeEach(() => {
-      ReenableCommand.register();
+    beforeEach(async () => {
+      sandbox.stub(LevelDB, 'put');
+      sandbox.stub(LevelDB, 'get').resolves({});
+      await ReenableCommand.register();
       reenableCallback = hookStub.getCall(0).args[2];
 
       eventReplyStub = sandbox.stub();
@@ -68,6 +100,15 @@ describe('ReenableCommand', () => {
       assert.notCalled(queueUserStub);
     });
 
+    it('Does not respond for user with many failures', async () => {
+      sandbox.replace(ReenableCommand, 'errorCache', { identhost: { fails: 99, last: new Date() } });
+      await reenableCallback({ message: '!reenable user', ident: 'ident', hostname: 'host', reply: eventReplyStub });
+      assert.notCalled(isInQueueStub);
+      assert.notCalled(eventReplyStub);
+      assert.notCalled(reenableUserStub);
+      assert.notCalled(queueUserStub);
+    });
+
     it('Responds and does nothing if user in queue', async () => {
       isInQueueStub.returns(true);
       await reenableCallback({ message: '!reenable user', reply: eventReplyStub });
@@ -80,6 +121,16 @@ describe('ReenableCommand', () => {
       reenableUserStub.throws('err');
       await reenableCallback({ message: '!reenable user', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, 'Your account could not be reenabled for technical reasons. Please try again.');
+    });
+
+    it('Saves error in cache if AB failure to reenable and should not queue', async () => {
+      const fakeDate = new Date();
+      sandbox.useFakeTimers(fakeDate);
+      const abErrorMsg = 'user does not exist';
+      reenableUserStub.resolves({ success: false, error: abErrorMsg });
+      await reenableCallback({ message: '!reenable user', ident: 'ident', hostname: 'host', reply: eventReplyStub });
+      expect(ReenableCommand.errorCache?.identhost?.fails).to.equal(1);
+      expect(ReenableCommand.errorCache?.identhost?.last?.getTime()).to.equal(fakeDate.getTime());
     });
 
     it('Responds with error from AB if failure to reenable and should not queue', async () => {
@@ -194,6 +245,16 @@ describe('ReenableCommand', () => {
         eventReplyStub,
         'Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules'
       );
+    });
+  });
+
+  describe('shutDown', () => {
+    it('Erases sweeper interval', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      const fakeInterval = setInterval(() => {}, 100);
+      sandbox.replace(ReenableCommand, 'sweeper', fakeInterval);
+      ReenableCommand.shutDown();
+      expect(ReenableCommand.sweeper).to.be.undefined;
     });
   });
 });

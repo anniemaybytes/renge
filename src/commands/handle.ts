@@ -26,8 +26,11 @@ export class HandleCommand {
       const pos = matches[1] ? parseInt(matches[1]) : 1; // if a position or nick wasn't specified, default to position 1
       if (!pos || pos < 1) return event.reply('Please provide a valid position number to handle');
       try {
-        const user = await QueueManager.unqueueUser(pos - 1);
-        return await SessionManager.startSupportSession(user.nick, event.nick, true, user.reason, user.ip);
+        if (QueueManager.queue.length === 0) throw new Error('No users are in the queue!');
+        const user = QueueManager.queue[pos - 1];
+        if (!user) throw new Error(`Only ${QueueManager.queue.length} user${QueueManager.queue.length === 1 ? ' is' : 's are'} in the queue!`);
+        await SessionManager.startSupportSession(user.nick, event.nick, true, user.reason, user.ip);
+        QueueManager.unqueueUser(undefined, user.nick);
       } catch (e) {
         return event.reply(e.message ? e.message : e.toString());
       }

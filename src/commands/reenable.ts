@@ -1,3 +1,4 @@
+import { LevelDB } from '../clients/leveldb.js';
 import { IRCClient } from '../clients/irc.js';
 import { ABClient } from '../clients/animebytes.js';
 import { QueueManager } from '../manager/queue.js';
@@ -6,8 +7,14 @@ import { Utils } from '../utils.js';
 import { Logger } from '../logger.js';
 const logger = Logger.get('ReenableCommand');
 
+const ErrorCacheKey = 'cache::reenableErrors';
+
 export class ReenableCommand {
   private static regex = /^!reenable\s+(\S+)(?:\s+(\S.*))?/i;
+  private static failLockoutThreshold = 5;
+  // Public for testing
+  public static sweeper?: NodeJS.Timer = undefined;
+  public static errorCache: { [userHost: string]: { fails: number; last: Date } } = {};
 
   private static userReenableMessages(username: string) {
     const now = new Date();
@@ -27,10 +34,21 @@ export class ReenableCommand {
     ];
   }
 
-  public static register() {
+  private static async sweepErrorCache() {
+    const hourAgo = new Date();
+    hourAgo.setUTCHours(hourAgo.getUTCHours() - 1);
+    Object.keys(ReenableCommand.errorCache).forEach((key) => {
+      if (ReenableCommand.errorCache[key].last < hourAgo) delete ReenableCommand.errorCache[key];
+    });
+    await LevelDB.put(ErrorCacheKey, ReenableCommand.errorCache);
+  }
+
+  public static async register() {
     IRCClient.addMessageHookInChannel(IRCClient.userSupportChan, ReenableCommand.regex, async (event) => {
       const matches = event.message.match(ReenableCommand.regex);
       if (!matches || (await IRCClient.isStaff(event.nick))) return;
+      const userHost = `${event.ident}${event.hostname}`;
+      if (ReenableCommand.errorCache[userHost]?.fails >= ReenableCommand.failLockoutThreshold) return; // Lock out continual failures
       logger.debug(`User !reenable request for ${matches[1]} from nick ${event.nick}`);
       try {
         if (QueueManager.isInQueue(event.nick)) return event.reply('You cannot reenable while in queue!');
@@ -42,6 +60,9 @@ export class ReenableCommand {
             "Your account could not be automatically reenabled! You've been added to the support queue, please wait for assistance."
           );
         }
+        if (!ReenableCommand.errorCache[userHost]) ReenableCommand.errorCache[userHost] = { fails: 0, last: new Date() };
+        ReenableCommand.errorCache[userHost].fails++;
+        ReenableCommand.errorCache[userHost].last = new Date();
         return event.reply(response.error || `Unknown error reenabling ${matches[1]}`);
       } catch (e) {
         logger.error(`Error calling user reenable on AB: ${e}`);
@@ -50,6 +71,18 @@ export class ReenableCommand {
     });
 
     ReenableCommand.inChannel(IRCClient.staffSupportChan);
+
+    // Load error cache and start sweeper
+    try {
+      const errorState = await LevelDB.get(ErrorCacheKey);
+      Object.keys(errorState).forEach((key) => (errorState[key].last = new Date(errorState[key].last)));
+      ReenableCommand.errorCache = errorState;
+    } catch (e) {
+      // Ignore NotFoundError (assumes new empty cache)
+      if (e.type !== 'NotFoundError') throw e;
+    }
+    await ReenableCommand.sweepErrorCache();
+    ReenableCommand.sweeper = setInterval(ReenableCommand.sweepErrorCache, 30000);
   }
 
   // Returns function which should be called to remove the registered callback
@@ -72,5 +105,12 @@ export class ReenableCommand {
         return event.reply('Account could not be reenabled for technical reasons. Please try again.');
       }
     });
+  }
+
+  public static shutDown() {
+    if (ReenableCommand.sweeper) {
+      clearInterval(ReenableCommand.sweeper);
+      ReenableCommand.sweeper = undefined;
+    }
   }
 }

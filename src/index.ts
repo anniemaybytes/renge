@@ -28,7 +28,7 @@ async function main() {
   KillCommand.register();
   LogsCommand.register();
   QueueCommand.register();
-  ReenableCommand.register();
+  await ReenableCommand.register();
   SessionsCommand.register();
   UnqueueCommand.register();
 
@@ -46,6 +46,7 @@ async function shutDown() {
   logger.error('Signal to stop received, shutting down');
   stopSignalReceived = true;
 
+  ReenableCommand.shutDown();
   IRCClient.shutDown();
   // give irc client time to shut down and call callbacks
   await Utils.sleep(3000);

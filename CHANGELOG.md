@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v4.1.0
+### Added
+- Enforce failure rate limiting for user !reenable
+
+## v4.0.1
+### Fixed
+- Do not unqueue user until successful session has been started when handling
+
 ## v4.0.0
 ### Changed
 - Produce ESM package
