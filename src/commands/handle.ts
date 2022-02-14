@@ -17,8 +17,6 @@ export class HandleCommand {
         // 'manual' handle request with nick and reason
         try {
           await SessionManager.startSupportSession(matches[1], event.nick, false, matches[2], 'N/A');
-          // Remove user from queue if they were in the queue, ignoring errors
-          QueueManager.unqueueUser(undefined, matches[1]).catch(() => '');
         } catch (e) {
           return event.reply(e.message ? e.message : e.toString());
         }
@@ -30,7 +28,6 @@ export class HandleCommand {
         const user = QueueManager.queue[pos - 1];
         if (!user) throw new Error(`Only ${QueueManager.queue.length} user${QueueManager.queue.length === 1 ? ' is' : 's are'} in the queue!`);
         await SessionManager.startSupportSession(user.nick, event.nick, true, user.reason, user.ip);
-        QueueManager.unqueueUser(undefined, user.nick);
       } catch (e) {
         return event.reply(e.message ? e.message : e.toString());
       }

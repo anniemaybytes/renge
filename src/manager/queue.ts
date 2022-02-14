@@ -35,11 +35,9 @@ export class QueueManager {
     IRCClient.addUserJoinHandler(QueueManager.userJoinHandler);
     IRCClient.addUserLeaveHandler(async (nick, chan) => {
       if (QueueManager.isUserSupportChannel(chan)) {
-        // remove the user from the support/unqueued lists if they are in them
+        // remove the user from the support/unqueued lists if they exist there
         QueueManager.removeUnqueuedUser(nick);
-        try {
-          await QueueManager.unqueueUser(undefined, nick);
-        } catch {} // eslint-disable-line no-empty
+        QueueManager.unqueueUserByNick(nick, true).catch(() => '');
       }
     });
     IRCClient.addDisconnectHandler(() => {
@@ -96,7 +94,7 @@ export class QueueManager {
         IRCClient.userSupportChan,
         `Hi ${nick}, we do not allow idling in the support channel. If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.` // eslint-disable-line max-len
       );
-      QueueManager.unqueuedUsers[nickLower] = setTimeout(() => IRCClient.kickUserFromChannel(IRCClient.userSupportChan, nick), 900000);
+      QueueManager.unqueuedUsers[nickLower] = setTimeout(() => IRCClient.partUserFromChannel(IRCClient.userSupportChan, nick), 900000);
     }, 300000);
   }
 
@@ -128,17 +126,25 @@ export class QueueManager {
     return true;
   }
 
-  // Get a user from the queue either by index or nick (or top of queue if neither)
-  public static async unqueueUser(index = 0, nick = '') {
-    if (index && nick) throw new Error('Only one of index or nick can be used for unqueue');
+  public static async unqueueUserByPosition(index = 0) {
     if (QueueManager.queue.length === 0) throw new Error('No users are in the queue!');
-    if (nick) {
-      const nickLower = nick.toLowerCase();
-      index = QueueManager.queue.findIndex((user) => user.nick.toLowerCase() === nickLower);
-      if (index === -1) throw new Error(`${nick} is not in the queue!`);
-    }
     if (index >= QueueManager.queue.length)
       throw new Error(`Only ${QueueManager.queue.length} user${QueueManager.queue.length === 1 ? ' is' : 's are'} in the queue!`);
+    return QueueManager.spliceAndSaveQueue(index);
+  }
+
+  public static async unqueueUserByNick(nick: string, ignoreNotFound: false): Promise<QueuedUser>;
+  public static async unqueueUserByNick(nick: string, ignoreNotFound: true): Promise<QueuedUser | undefined>;
+  public static async unqueueUserByNick(nick: string, ignoreNotFound: boolean): Promise<QueuedUser | undefined> {
+    const index = QueueManager.queue.findIndex((user) => user.nick.toLowerCase() === nick.toLowerCase());
+    if (index === -1) {
+      if (ignoreNotFound) return;
+      throw new Error(`${nick} is not in the queue!`);
+    }
+    return QueueManager.spliceAndSaveQueue(index);
+  }
+
+  private static async spliceAndSaveQueue(index: number) {
     const user = QueueManager.queue.splice(index, 1)[0];
     await QueueManager.saveQueueToState();
     return user;

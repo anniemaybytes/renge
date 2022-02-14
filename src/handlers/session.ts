@@ -130,19 +130,12 @@ export class SessionHandler {
     try {
       // Make sure this channel is empty before starting
       for (const nick of IRCClient.channelState[this.ircChannel.toLowerCase()] || new Set()) {
-        if (!IRCClient.isMe(nick)) IRCClient.kickUserFromChannel(this.ircChannel, nick);
+        if (!IRCClient.isMe(nick)) IRCClient.partUserFromChannel(this.ircChannel, nick);
       }
       // Make sure modes are set on session channel
       IRCClient.setUpSessionChannel(this.ircChannel);
-      // Send announcement/notice
-      if (announce)
-        IRCClient.message(
-          IRCClient.userSupportChan,
-          `Now helping ${this.userClientNick}.${QueueManager.queue.length ? ` Next in queue: ${QueueManager.queue[0].nick}` : ''}`
-        );
+      // Notify assigned staff
       IRCClient.notice(this.staffHandlerNick, `Starting support session for ${this.userClientNick} in ${this.ircChannel}, user IP: ${userIP}`);
-      // Remove the user to help from the main support channel
-      IRCClient.kickUserFromChannel(IRCClient.userSupportChan, this.userClientNick);
       // Start log. Note this also saves this session to state
       await this.logMsg(
         `Beginning support conversation between ${this.userClientNick} and ${this.staffHandlerNick} in ${this.ircChannel}. Reason: ${this.reason}`
@@ -152,6 +145,15 @@ export class SessionHandler {
       await IRCClient.joinUserToChannel(this.ircChannel, this.userClientNick);
       IRCClient.notice(this.userClientNick, `${this.userClientNick}, you are now being helped by ${this.staffHandlerNick} in ${this.ircChannel}`);
       this.started = true;
+      // Remove the user to help from the main support channel and queue, then announce (if necessary)
+      await QueueManager.unqueueUserByNick(this.userClientNick, true);
+      IRCClient.partUserFromChannel(IRCClient.userSupportChan, this.userClientNick);
+      if (announce) {
+        IRCClient.message(
+          IRCClient.userSupportChan,
+          `Now helping ${this.userClientNick}.${QueueManager.queue.length ? ` Next in queue: ${QueueManager.queue[0].nick}` : ''}`
+        );
+      }
     } catch (e) {
       logger.error(`Unexpected error starting new support session: ${e}`);
       throw new Error('Internal Error');
@@ -238,7 +240,7 @@ export class SessionHandler {
     }
     // Kick users from the session channel
     for (const nick of IRCClient.channelState[this.ircChannel.toLowerCase()] || new Set()) {
-      if (!IRCClient.isMe(nick)) IRCClient.kickUserFromChannel(this.ircChannel, nick);
+      if (!IRCClient.isMe(nick)) IRCClient.partUserFromChannel(this.ircChannel, nick);
     }
     // Call all of the cleanup callbacks
     for (const cb of this.cleanupCallbacks) {

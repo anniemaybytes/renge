@@ -1,4 +1,4 @@
-import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub, assert, match } from 'sinon';
 
 import { UnqueueCommand } from './unqueue.js';
 import { IRCClient } from '../clients/irc.js';
@@ -35,13 +35,13 @@ describe('UnqueueCommand', () => {
       unqueueCallback = hookStub.getCall(0).args[2];
 
       eventReplyStub = sandbox.stub();
-      unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
+      unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUserByNick');
       addUnqueuedUserStub = sandbox.stub(QueueManager, 'addUnqueuedUser');
     });
 
     it('Calls unqueue user on the queue for the nick', async () => {
       await unqueueCallback({ nick: 'nick', reply: eventReplyStub });
-      assert.calledOnceWithExactly(unqueueUserStub, undefined, 'nick');
+      assert.calledOnceWithExactly(unqueueUserStub, 'nick', match.any);
     });
 
     it('Calls addUnqueuedUser user on the queue for unqueued user', async () => {
@@ -71,7 +71,7 @@ describe('UnqueueCommand', () => {
       UnqueueCommand.register();
       unqueueCallback = hookStub.getCall(1).args[2];
       eventReplyStub = sandbox.stub();
-      unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
+      unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUserByPosition');
       addUnqueuedUserStub = sandbox.stub(QueueManager, 'addUnqueuedUser');
     });
 

@@ -1,4 +1,4 @@
-import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
+import { createSandbox, SinonSandbox, SinonStub, assert, match } from 'sinon';
 import { expect } from 'chai';
 import mock from 'mock-fs';
 import fs from 'fs';
@@ -348,15 +348,17 @@ describe('SessionHandler', () => {
     let noticeStub: SinonStub;
     let joinUserToChannelStub: SinonStub;
     let logStub: SinonStub;
+    let unqueueStub: SinonStub;
     beforeEach(() => {
       session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       sandbox.stub(IRCClient, 'isMe').returns(false);
-      kickUserStub = sandbox.stub(IRCClient, 'kickUserFromChannel');
+      kickUserStub = sandbox.stub(IRCClient, 'partUserFromChannel');
       setUpChanStub = sandbox.stub(IRCClient, 'setUpSessionChannel');
       messageStub = sandbox.stub(IRCClient, 'message');
       noticeStub = sandbox.stub(IRCClient, 'notice');
       joinUserToChannelStub = sandbox.stub(IRCClient, 'joinUserToChannel');
       logStub = sandbox.stub(session, 'logMsg');
+      unqueueStub = sandbox.stub(QueueManager, 'unqueueUserByNick');
       sandbox.replace(IRCClient, 'channelState', {});
       sandbox.replace(QueueManager, 'queue', []);
     });
@@ -392,6 +394,11 @@ describe('SessionHandler', () => {
       await session.startNewSession('ip', false);
       assert.calledWithExactly(noticeStub.getCall(0), 'staff', 'Starting support session for nick in chan, user IP: ip');
       assert.calledWithExactly(noticeStub.getCall(1), 'nick', 'nick, you are now being helped by staff in chan');
+    });
+
+    it('Unqueues user from queue', async () => {
+      await session.startNewSession('ip', false);
+      assert.calledOnceWithExactly(unqueueStub, 'nick', match.any);
     });
 
     it('Kicks user from support channel', async () => {
@@ -508,7 +515,7 @@ describe('SessionHandler', () => {
       session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       session.started = true;
       sandbox.stub(IRCClient, 'isMe').returns(false);
-      kickUserStub = sandbox.stub(IRCClient, 'kickUserFromChannel');
+      kickUserStub = sandbox.stub(IRCClient, 'partUserFromChannel');
       createPasteStub = sandbox.stub(ABClient, 'createPaste').resolves('pasteURL');
       messageStub = sandbox.stub(IRCClient, 'message');
       putStub = sandbox.stub(LevelDB, 'put');

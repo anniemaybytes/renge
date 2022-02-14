@@ -219,14 +219,14 @@ describe('IRCClient', () => {
     });
   });
 
-  describe('kickUserFromChannel', () => {
+  describe('partUserFromChannel', () => {
     let rawCommandStub: SinonStub;
     beforeEach(() => {
       rawCommandStub = sandbox.stub(IRCClient, 'rawCommand');
     });
 
     it('Calls SAPART with correct parameters', () => {
-      IRCClient.kickUserFromChannel('chan', 'nick');
+      IRCClient.partUserFromChannel('chan', 'nick');
       assert.calledOnceWithExactly(rawCommandStub, 'SAPART', 'nick', 'chan');
     });
   });

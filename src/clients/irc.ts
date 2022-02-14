@@ -175,8 +175,8 @@ export class IRCClient {
     );
   }
 
-  // Blindly kick a user from a channel with SAPART. Does not check for success
-  public static kickUserFromChannel(channel: string, nick: string) {
+  // Blindly part a user from a channel with SAPART. Does not check for success
+  public static partUserFromChannel(channel: string, nick: string) {
     IRCClient.rawCommand('SAPART', nick, channel);
   }
 

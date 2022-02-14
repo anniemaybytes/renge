@@ -30,7 +30,7 @@ describe('QueueManager', () => {
     });
   });
 
-  describe('initQueue', () => {
+  describe('start', () => {
     let mockDBGet: SinonStub;
     let mockAddRename: SinonStub;
     let mockAddJoin: SinonStub;
@@ -80,7 +80,7 @@ describe('QueueManager', () => {
     });
 
     it('Adds IRC user leave handler which does nothing if not support channel', async () => {
-      const unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
+      const unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUserByNick').resolves();
       await QueueManager.start();
       assert.calledOnce(mockAddLeave);
       await mockAddLeave.getCall(0).args[0]('nick', 'randomchan');
@@ -88,7 +88,7 @@ describe('QueueManager', () => {
     });
 
     it('Adds IRC user leave handler which removes queued/unqueued user', async () => {
-      const unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser');
+      const unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUserByNick').resolves();
       sandbox.replace(QueueManager, 'unqueuedUsers', { nick: setTimeout(() => '', 0) });
       await QueueManager.start();
       assert.calledOnce(mockAddLeave);
@@ -200,7 +200,7 @@ describe('QueueManager', () => {
       isStaffStub = sandbox.stub(IRCClient, 'isStaff').resolves(false);
       isChannelOp = sandbox.stub(IRCClient, 'isChannelOp').resolves(false);
       messageStub = sandbox.stub(IRCClient, 'message');
-      kickUserStub = sandbox.stub(IRCClient, 'kickUserFromChannel');
+      kickUserStub = sandbox.stub(IRCClient, 'partUserFromChannel');
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['nick']) });
       sandbox.replace(QueueManager, 'unqueuedUsers', {});
     });
@@ -314,26 +314,17 @@ describe('QueueManager', () => {
     });
   });
 
-  describe('unqueueUser', () => {
+  describe('unqueueUserByPosition', () => {
     let mockDBPut: SinonStub;
     beforeEach(() => {
       mockDBPut = sandbox.stub(LevelDB, 'put');
       sandbox.replace(QueueManager, 'queue', [{ nick: 'one' }] as any);
     });
 
-    it('Throws an error if providing both index and nick', async () => {
-      try {
-        await QueueManager.unqueueUser(1, 'nick');
-      } catch (e) {
-        return;
-      }
-      expect.fail('Did not throw');
-    });
-
     it('Throws error if the queue is empty', async () => {
       QueueManager.queue = [];
       try {
-        await QueueManager.unqueueUser();
+        await QueueManager.unqueueUserByPosition();
       } catch (e) {
         return;
       }
@@ -342,16 +333,7 @@ describe('QueueManager', () => {
 
     it('Throws an error if fetching a position larger than the queue', async () => {
       try {
-        await QueueManager.unqueueUser(99);
-      } catch (e) {
-        return;
-      }
-      expect.fail('Did not throw');
-    });
-
-    it('Throws an error if fetching a nick not in the queue', async () => {
-      try {
-        await QueueManager.unqueueUser(undefined, 'badnick');
+        await QueueManager.unqueueUserByPosition(99);
       } catch (e) {
         return;
       }
@@ -360,26 +342,53 @@ describe('QueueManager', () => {
 
     it('Extracts/returns first user in the queue by default', async () => {
       QueueManager.queue = ['one', 'two', 'three'] as any;
-      expect(await QueueManager.unqueueUser()).to.equal('one');
+      expect(await QueueManager.unqueueUserByPosition()).to.equal('one');
       expect(QueueManager.queue).to.deep.equal(['two', 'three']);
     });
 
     it('Extracts/returns correct zero-based queued user when supplying index', async () => {
       QueueManager.queue = ['one', 'two', 'three'] as any;
-      expect(await QueueManager.unqueueUser(1)).to.equal('two');
+      expect(await QueueManager.unqueueUserByPosition(1)).to.equal('two');
       expect(QueueManager.queue).to.deep.equal(['one', 'three']);
-    });
-
-    it('Extracts/returns correct user when supplying nick', async () => {
-      QueueManager.queue = [{ nick: 'one' }, { nick: 'two' }, { nick: 'three' }] as any;
-      expect(await QueueManager.unqueueUser(undefined, 'two')).to.deep.equal({ nick: 'two' });
-      expect(QueueManager.queue).to.deep.equal([{ nick: 'one' }, { nick: 'three' }]);
     });
 
     it('Saves updated queue to state after removing unqueued user', async () => {
       QueueManager.queue = ['one', 'two', 'three'] as any;
-      await QueueManager.unqueueUser();
+      await QueueManager.unqueueUserByPosition();
       assert.calledOnceWithExactly(mockDBPut, 'queue::queuedUsers', ['two', 'three']);
+    });
+  });
+
+  describe('unqueueUserByNick', () => {
+    let mockDBPut: SinonStub;
+    beforeEach(() => {
+      mockDBPut = sandbox.stub(LevelDB, 'put');
+      sandbox.replace(QueueManager, 'queue', [{ nick: 'one' }] as any);
+    });
+
+    it('Throws an error if fetching a nick not in the queue and not ignoring', async () => {
+      try {
+        await QueueManager.unqueueUserByNick('badnick', false);
+      } catch (e) {
+        return;
+      }
+      expect.fail('Did not throw');
+    });
+
+    it('Does not throw an error if fetching a nick not in the queue and ignoring', async () => {
+      await QueueManager.unqueueUserByNick('badnick', true);
+    });
+
+    it('Extracts/returns correct user when supplying nick', async () => {
+      QueueManager.queue = [{ nick: 'one' }, { nick: 'two' }, { nick: 'three' }] as any;
+      expect(await QueueManager.unqueueUserByNick('two', false)).to.deep.equal({ nick: 'two' });
+      expect(QueueManager.queue).to.deep.equal([{ nick: 'one' }, { nick: 'three' }]);
+    });
+
+    it('Saves updated queue to state after removing unqueued user', async () => {
+      QueueManager.queue = [{ nick: 'one' }, { nick: 'two' }, { nick: 'three' }] as any;
+      await QueueManager.unqueueUserByNick('one', false);
+      assert.calledOnceWithExactly(mockDBPut, 'queue::queuedUsers', [{ nick: 'two' }, { nick: 'three' }]);
     });
   });
 });

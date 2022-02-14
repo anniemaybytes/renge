@@ -32,7 +32,7 @@ describe('SessionManager', () => {
       initPreviousLogs = sandbox.stub(SessionHandler, 'initPreviousLogs');
       mockFromState = sandbox.stub(SessionHandler, 'fromState').resolves(mockSupportSession);
       isMeStub = sandbox.stub(IRCClient, 'isMe').returns(false);
-      kickUserStub = sandbox.stub(IRCClient, 'kickUserFromChannel');
+      kickUserStub = sandbox.stub(IRCClient, 'partUserFromChannel');
     });
 
     it('Calls initPreviousLogs on SupportSession', async () => {

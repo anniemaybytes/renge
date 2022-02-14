@@ -29,7 +29,6 @@ describe('HandleCommand', () => {
     let handleCallback: any;
     let eventReplyStub: SinonStub;
     let startSupportSessionStub: SinonStub;
-    let unqueueUserStub: SinonStub;
 
     beforeEach(() => {
       HandleCommand.register();
@@ -37,13 +36,11 @@ describe('HandleCommand', () => {
 
       eventReplyStub = sandbox.stub();
       startSupportSessionStub = sandbox.stub(SessionManager, 'startSupportSession');
-      unqueueUserStub = sandbox.stub(QueueManager, 'unqueueUser').resolves({} as any);
     });
 
     it('Does not respond if it fails to match the regex', async () => {
       await handleCallback({ message: 'badMessage', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
-      assert.notCalled(unqueueUserStub);
       assert.notCalled(startSupportSessionStub);
     });
 
@@ -56,18 +53,6 @@ describe('HandleCommand', () => {
       startSupportSessionStub.throws('err');
       await handleCallback({ message: '!handle nick reason', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, 'err');
-    });
-
-    it('Attempts to unqueue user after successfully starting support session when manually specifying nick and reason', async () => {
-      unqueueUserStub.throws('err'); // should be able to handle a bad unqueue gracefully
-      await handleCallback({ message: '!handle nick reason', reply: eventReplyStub });
-      assert.calledOnceWithExactly(unqueueUserStub, undefined, 'nick');
-    });
-
-    it('Calls unqueueUser user on the queue for first position if no position specified', async () => {
-      sandbox.replace(QueueManager, 'queue', [{ nick: 'one' }, { nick: 'two' } as any]);
-      await handleCallback({ message: '!handle', reply: eventReplyStub });
-      assert.calledOnceWithExactly(unqueueUserStub, undefined, 'one');
     });
 
     it('Responds with help if position specified is not a valid number', async () => {
@@ -91,23 +76,10 @@ describe('HandleCommand', () => {
       assert.calledOnceWithExactly(eventReplyStub, 'Only 1 user is in the queue!');
     });
 
-    it('Calls unqueueUser user on the queue for the specified position', async () => {
-      sandbox.replace(QueueManager, 'queue', [{ nick: 'one' }, { nick: 'two' } as any]);
-      await handleCallback({ message: '!handle 2', reply: eventReplyStub });
-      assert.calledOnceWithExactly(unqueueUserStub, undefined, 'two');
-    });
-
     it('Calls startSupportSession with appropriate parameters with user from position', async () => {
       sandbox.replace(QueueManager, 'queue', [{}, { nick: 'nick', reason: 'reason', ip: 'ip' } as any]);
       await handleCallback({ message: '!handle 2', nick: 'staff', reply: eventReplyStub });
       assert.calledOnceWithExactly(startSupportSessionStub, 'nick', 'staff', true, 'reason', 'ip');
-    });
-
-    it('Responds appropriately if unsuccessfully unqueued with position', async () => {
-      sandbox.replace(QueueManager, 'queue', [{ nick: 'one' }, { nick: 'two' } as any]);
-      unqueueUserStub.throws('err');
-      await handleCallback({ message: '!handle 2', reply: eventReplyStub });
-      assert.calledOnceWithExactly(eventReplyStub, 'err');
     });
   });
 });

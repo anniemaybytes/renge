@@ -40,7 +40,7 @@ export class SessionManager {
     IRCClient.supportSessionChannels.forEach((chan) => {
       if (!SessionManager.activeSupportSessions[chan]) {
         for (const nick of IRCClient.channelState[chan.toLowerCase()] || new Set()) {
-          if (!IRCClient.isMe(nick)) IRCClient.kickUserFromChannel(chan, nick);
+          if (!IRCClient.isMe(nick)) IRCClient.partUserFromChannel(chan, nick);
         }
       }
     });
