@@ -48,7 +48,7 @@ export class SessionHandler {
       });
     } catch (e) {
       // Ignore NotFoundError (assumes no previous session logs)
-      if (e.type !== 'NotFoundError') throw e;
+      if (e.code !== 'LEVEL_NOT_FOUND') throw e;
       SessionHandler.previousLogs = [];
     }
   }

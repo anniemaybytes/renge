@@ -54,7 +54,7 @@ describe('QueueManager', () => {
     });
 
     it('Sets queue to empty if db get throws not found', async () => {
-      mockDBGet.throws({ type: 'NotFoundError' });
+      mockDBGet.throws({ code: 'LEVEL_NOT_FOUND' });
       await QueueManager.start();
       expect(QueueManager.queue).to.deep.equal([]);
     });

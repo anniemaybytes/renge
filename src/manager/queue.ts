@@ -162,7 +162,7 @@ export class QueueManager {
       });
     } catch (e) {
       // Ignore NotFoundError (assumes new empty queue)
-      if (e.type !== 'NotFoundError') throw e;
+      if (e.code !== 'LEVEL_NOT_FOUND') throw e;
       QueueManager.queue = [];
     }
   }

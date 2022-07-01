@@ -79,7 +79,7 @@ export class ReenableCommand {
       ReenableCommand.errorCache = errorState;
     } catch (e) {
       // Ignore NotFoundError (assumes new empty cache)
-      if (e.type !== 'NotFoundError') throw e;
+      if (e.code !== 'LEVEL_NOT_FOUND') throw e;
     }
     await ReenableCommand.sweepErrorCache();
     ReenableCommand.sweeper = setInterval(ReenableCommand.sweepErrorCache, 30000);

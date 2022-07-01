@@ -51,7 +51,7 @@ describe('SessionManager', () => {
     });
 
     it('Does not throw if db get fails with not found', async () => {
-      mockDBGet.throws({ type: 'NotFoundError' });
+      mockDBGet.throws({ code: 'LEVEL_NOT_FOUND' });
       await SessionManager.start();
     });
 

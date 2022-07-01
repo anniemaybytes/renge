@@ -18,7 +18,7 @@ export class SessionManager {
       activeSessions = await LevelDB.get(ActiveSessionsKey);
     } catch (e) {
       // Ignore NotFoundError (assumes no existing sessions)
-      if (e.type !== 'NotFoundError') throw e;
+      if (e.code !== 'LEVEL_NOT_FOUND') throw e;
       SessionManager.activeSupportSessions = {};
     }
     // Load all sessions from state
@@ -33,7 +33,7 @@ export class SessionManager {
         await session.checkIfInProgress();
       } catch (e) {
         // Ignore NotFoundError (assumes session ended)
-        if (e.type !== 'NotFoundError') throw e;
+        if (e.code !== 'LEVEL_NOT_FOUND') throw e;
       }
     }
     // Remove all users from support session channels which are not currently active

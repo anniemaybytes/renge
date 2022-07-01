@@ -42,7 +42,7 @@ describe('SessionHandler', () => {
 
     it('Sets previousLogs to empty array if NotFound', async () => {
       SessionHandler.previousLogs = 'garbage' as any;
-      mockDBGet.throws({ type: 'NotFoundError' });
+      mockDBGet.throws({ code: 'LEVEL_NOT_FOUND' });
       await SessionHandler.initPreviousLogs();
       expect(SessionHandler.previousLogs).to.deep.equal([]);
     });

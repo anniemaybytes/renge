@@ -43,7 +43,7 @@ describe('ReenableCommand', () => {
     });
 
     it('Handles missing cache state when loading', async () => {
-      getStub.throws({ type: 'NotFoundError' });
+      getStub.throws({ code: 'LEVEL_NOT_FOUND' });
       await ReenableCommand.register();
       expect(ReenableCommand.errorCache).to.be.empty;
     });
