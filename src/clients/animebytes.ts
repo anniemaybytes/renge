@@ -1,7 +1,7 @@
 import got from 'got';
 
 import { Config } from './config.js';
-import { ReEnableResponse } from '../types';
+import { ReEnableResponse } from '../types.js';
 
 import { Logger } from '../logger.js';
 const logger = Logger.get('ABClient');
