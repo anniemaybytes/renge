@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v5.0.1
+### Changed
+- Fix Node v16 being used in Dockerfile
+
+## v5.0.0
+### Changed
+- Bumped minimum supported Node version to v18.12.0
+
 ## v4.2.0
 ### Fixed
 - Crash when handling user due to double-unqueue
