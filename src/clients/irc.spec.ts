@@ -2,6 +2,7 @@ import { createSandbox, SinonSandbox, SinonStub, assert } from 'sinon';
 import { expect } from 'chai';
 
 import { IRCClient } from './irc.js';
+import { ConnectedHandler, DisconnectHandler, JoinHandler, LeaveHandler, RenameHandler } from '../types.js';
 
 describe('IRCClient', () => {
   let sandbox: SinonSandbox;
@@ -352,7 +353,7 @@ describe('IRCClient', () => {
 
     it('Adds joining nick to channel state if not me', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set([]) });
-      sandbox.replace(IRCClient, 'joinHandlers', new Set());
+      sandbox.replace(IRCClient, 'joinHandlers', new Set() as JoinHandler);
       await IRCClient.handleUserJoin('chan', 'nick');
       expect(IRCClient.channelState['chan'].has('nick')).to.be.true;
     });
@@ -400,7 +401,7 @@ describe('IRCClient', () => {
 
     it('Removes leaving nick from channel state if not me', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['nick']) });
-      sandbox.replace(IRCClient, 'leaveHandlers', new Set());
+      sandbox.replace(IRCClient, 'leaveHandlers', new Set() as LeaveHandler);
       await IRCClient.handleChannelLeave('chan', 'nick', 'parted');
       expect(IRCClient.channelState['chan'].has('nick')).to.be.false;
     });
@@ -417,7 +418,7 @@ describe('IRCClient', () => {
   describe('handleUserLeave', () => {
     it('Removes nick from channel state', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['nick']) });
-      sandbox.replace(IRCClient, 'leaveHandlers', new Set());
+      sandbox.replace(IRCClient, 'leaveHandlers', new Set() as LeaveHandler);
       await IRCClient.handleUserLeave('nick');
       expect(IRCClient.channelState['chan'].has('nick')).to.be.false;
     });
@@ -444,7 +445,7 @@ describe('IRCClient', () => {
   describe('handleUserNewNick', () => {
     it('Updates nicks in channel state', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['oldnick']) });
-      sandbox.replace(IRCClient, 'renameHandlers', new Set());
+      sandbox.replace(IRCClient, 'renameHandlers', new Set() as RenameHandler);
       await IRCClient.handleUserNewNick('oldnick', 'newnick');
       expect(IRCClient.channelState['chan'].has('oldnick')).to.be.false;
       expect(IRCClient.channelState['chan'].has('newnick')).to.be.true;
@@ -463,7 +464,7 @@ describe('IRCClient', () => {
     beforeEach(() => {
       sandbox.replace(IRCClient, 'channelState', { '#chan': new Set(['someone']) });
       sandbox.replace(IRCClient, 'registered', true);
-      sandbox.replace(IRCClient, 'disconnectHandlers', new Set());
+      sandbox.replace(IRCClient, 'disconnectHandlers', new Set() as DisconnectHandler);
     });
 
     it('Clears channel state', () => {
@@ -518,7 +519,7 @@ describe('IRCClient', () => {
 
   describe('addUserLeaveHandler', () => {
     beforeEach(() => {
-      sandbox.replace(IRCClient, 'leaveHandlers', new Set());
+      sandbox.replace(IRCClient, 'leaveHandlers', new Set() as LeaveHandler);
     });
 
     it('Adds the provided callback to the IRCClient leaveHandlers', () => {
@@ -536,7 +537,7 @@ describe('IRCClient', () => {
 
   describe('addUserJoinHandler', () => {
     beforeEach(() => {
-      sandbox.replace(IRCClient, 'joinHandlers', new Set());
+      sandbox.replace(IRCClient, 'joinHandlers', new Set() as JoinHandler);
     });
 
     it('Adds the provided callback to the IRCClient joinHandlers', () => {
@@ -554,7 +555,7 @@ describe('IRCClient', () => {
 
   describe('addUserRenameHandler', () => {
     beforeEach(() => {
-      sandbox.replace(IRCClient, 'renameHandlers', new Set());
+      sandbox.replace(IRCClient, 'renameHandlers', new Set() as RenameHandler);
     });
 
     it('Adds the provided callback to the IRCClient renameHandlers', () => {
@@ -572,7 +573,7 @@ describe('IRCClient', () => {
 
   describe('addConnectHandler', () => {
     beforeEach(() => {
-      sandbox.replace(IRCClient, 'connectedHandlers', new Set());
+      sandbox.replace(IRCClient, 'connectedHandlers', new Set() as ConnectedHandler);
     });
 
     it('Adds the provided callback to the IRCClient connectedHandlers', () => {
@@ -590,7 +591,7 @@ describe('IRCClient', () => {
 
   describe('addDisconnectHandler', () => {
     beforeEach(() => {
-      sandbox.replace(IRCClient, 'disconnectHandlers', new Set());
+      sandbox.replace(IRCClient, 'disconnectHandlers', new Set() as DisconnectHandler);
     });
 
     it('Adds the provided callback to the IRCClient disconnectHandlers', () => {

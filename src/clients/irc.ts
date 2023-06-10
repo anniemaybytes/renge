@@ -3,7 +3,17 @@ import { promisify } from 'util';
 
 import { Utils } from '../utils.js';
 import { Config } from './config.js';
-import { MessageEvent, WHOResponse, WHOISResponse } from '../types.js';
+import {
+  MessageEvent,
+  WHOResponse,
+  WHOISResponse,
+  JoinHandler,
+  LeaveHandler,
+  DisconnectHandler,
+  ConnectedHandler,
+  RenameHandler,
+  ChannelState,
+} from '../types.js';
 
 import { Logger } from '../logger.js';
 const logger = Logger.get('IRCClient');
@@ -43,13 +53,13 @@ export class IRCClient {
   public static shuttingDown = false;
   public static bot = ircClient;
   // Keeps track of users in channels
-  public static channelState: { [channel: string]: Set<string> } = {};
+  public static channelState: ChannelState = {};
   // Keeps track of external handlers for certain events
-  public static renameHandlers: Set<(oldNick: string, newNick: string) => any> = new Set();
-  public static joinHandlers: Set<(nick: string, channel: string) => any> = new Set();
-  public static leaveHandlers: Set<(nick: string, channel: string, leaveType: 'kicked' | 'parted' | 'quit') => any> = new Set();
-  public static disconnectHandlers: Set<() => any> = new Set();
-  public static connectedHandlers: Set<() => any> = new Set();
+  public static renameHandlers: RenameHandler = new Set();
+  public static joinHandlers: JoinHandler = new Set();
+  public static leaveHandlers: LeaveHandler = new Set();
+  public static disconnectHandlers: DisconnectHandler = new Set();
+  public static connectedHandlers: ConnectedHandler = new Set();
 
   private static bot_who = promisify(ircClient.who).bind(ircClient);
   private static bot_whois = promisify(ircClient.whois).bind(ircClient);
@@ -121,12 +131,14 @@ export class IRCClient {
       if (IRCClient.channelState[channel.toLowerCase()]) return resolve(); // already in channel
       // If joining takes longer than 5 seconds, consider it a failure
       const timeout = setTimeout(() => reject(new Error(`Unable to join channel ${channel}`)), 5000);
+
       function channelUserListHandler(event: any) {
         if (event.channel.toLowerCase() === channel.toLowerCase()) {
           clearTimeout(timeout);
           resolve();
         }
       }
+
       IRCClient.bot.on('userlist', channelUserListHandler);
       IRCClient.rawCommand('SAJOIN', IRCClient.IRC_NICK, channel);
       // Cleanup userlist handler
@@ -143,12 +155,14 @@ export class IRCClient {
       if (!IRCClient.channelState[channel.toLowerCase()]) return reject(new Error('Cannot join user to channel which I am not currently in'));
       if (IRCClient.channelState[channel.toLowerCase()].has(nick.toLowerCase())) return resolve(); // user is already in the channel
       const timeout = setTimeout(() => reject(new Error(`Unable to SAJOIN ${nick} to ${channel}`)), 5000);
+
       function joinHandler(event: any) {
         if (event.channel.toLowerCase() === channel.toLowerCase() && event.nick.toLowerCase() === nick.toLowerCase()) {
           clearTimeout(timeout);
           resolve();
         }
       }
+
       IRCClient.bot.on('join', joinHandler);
       IRCClient.rawCommand('SAJOIN', nick, channel);
       // Cleanup join handler
