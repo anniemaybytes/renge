@@ -69,7 +69,7 @@ export class QueueManager {
       // Send welcome message to newly joined user
       IRCClient.message(
         IRCClient.userSupportChan,
-        `Hi ${nick}! If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.`
+        `Hi ${nick}! If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.`,
       );
       // Sleep to allow chanserv or whatnot to add op before adding unqueued user which checks for channel op status
       await Utils.sleep(5000);
@@ -92,7 +92,7 @@ export class QueueManager {
     QueueManager.unqueuedUsers[nickLower] = setTimeout(() => {
       IRCClient.message(
         IRCClient.userSupportChan,
-        `Hi ${nick}, we do not allow idling in the support channel. If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.` // eslint-disable-line max-len
+        `Hi ${nick}, we do not allow idling in the support channel. If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.`, // eslint-disable-line max-len
       );
       QueueManager.unqueuedUsers[nickLower] = setTimeout(() => IRCClient.partUserFromChannel(IRCClient.userSupportChan, nick), 900000);
     }, 300000);

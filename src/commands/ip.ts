@@ -15,7 +15,7 @@ export class IPCommand {
       logger.debug(`Staff !ip request from nick ${event.nick}`);
       const nickLower = matches[1].toLowerCase();
       const inActiveSession = Object.values(SessionManager.activeSupportSessions).some(
-        (sess) => !sess.ended && sess.userClientNick.toLowerCase() === nickLower
+        (sess) => !sess.ended && sess.userClientNick.toLowerCase() === nickLower,
       );
       const inQueue = QueueManager.isInQueue(nickLower);
       if (inActiveSession || inQueue) {

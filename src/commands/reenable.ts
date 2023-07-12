@@ -27,7 +27,7 @@ export class ReenableCommand {
     const timeDiffMinutes = (midnightUTC.getTime() - now.getTime()) / 1000 / 60;
     return [
       `User reenabled! Welcome back ${username}, please login by 00:00 UTC (within ${Utils.minutesToString(
-        timeDiffMinutes
+        timeDiffMinutes,
       )} from now) in order to prevent being disabled again.`,
       'To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle.',
       'Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules',
@@ -57,7 +57,7 @@ export class ReenableCommand {
         if (response.queue) {
           await QueueManager.queueUser(event.nick, `User ${matches[1]} (https://animebytes.tv/user/profile/${matches[1]}) needs staff reenabling`);
           return event.reply(
-            "Your account could not be automatically reenabled! You've been added to the support queue, please wait for assistance."
+            "Your account could not be automatically reenabled! You've been added to the support queue, please wait for assistance.",
           );
         }
         if (!ReenableCommand.errorCache[userHost]) ReenableCommand.errorCache[userHost] = { fails: 0, last: new Date() };

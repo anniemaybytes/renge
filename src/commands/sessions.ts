@@ -19,7 +19,7 @@ export class SessionsCommand {
           event.reply(
             `${Utils.getIRCColorFunc(sess.color)(sess.ircChannel)} - ${Utils.space(sess.staffHandlerNick)} helping ${
               sess.userClientNick
-            } started ${Utils.dateToFriendlyString(new Date(sess.startTime))} reason: ${sess.reason}`
+            } started ${Utils.dateToFriendlyString(new Date(sess.startTime))} reason: ${sess.reason}`,
           );
         });
       }

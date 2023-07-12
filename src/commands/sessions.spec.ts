@@ -65,11 +65,11 @@ describe('SessionsCommand', () => {
       assert.calledTwice(eventReplyStub);
       assert.calledWith(
         eventReplyStub,
-        '\x0312chan1\x03 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B1 helping user1 started 2000-01-01 00:00:00 UTC reason: reason'
+        '\x0312chan1\x03 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B1 helping user1 started 2000-01-01 00:00:00 UTC reason: reason',
       );
       assert.calledWith(
         eventReplyStub,
-        '\x0312chan2\x03 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B2 helping user2 started 2000-01-01 00:00:00 UTC reason: reason'
+        '\x0312chan2\x03 - s\u200Bt\u200Ba\u200Bf\u200Bf\u200B2 helping user2 started 2000-01-01 00:00:00 UTC reason: reason',
       );
     });
   });

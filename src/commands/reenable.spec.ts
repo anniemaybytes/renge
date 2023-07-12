@@ -147,15 +147,15 @@ describe('ReenableCommand', () => {
       assert.calledThrice(eventReplyStub);
       assert.calledWith(
         eventReplyStub,
-        'User reenabled! Welcome back user, please login by 00:00 UTC (within 10 hours from now) in order to prevent being disabled again.'
+        'User reenabled! Welcome back user, please login by 00:00 UTC (within 10 hours from now) in order to prevent being disabled again.',
       );
       assert.calledWith(
         eventReplyStub,
-        'To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle.'
+        'To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle.',
       );
       assert.calledWith(
         eventReplyStub,
-        'Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules'
+        'Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules',
       );
     });
 
@@ -165,7 +165,7 @@ describe('ReenableCommand', () => {
       assert.calledOnceWithExactly(queueUserStub, 'nick', 'User user (https://animebytes.tv/user/profile/user) needs staff reenabling');
       assert.calledOnceWithExactly(
         eventReplyStub,
-        "Your account could not be automatically reenabled! You've been added to the support queue, please wait for assistance."
+        "Your account could not be automatically reenabled! You've been added to the support queue, please wait for assistance.",
       );
     });
   });
@@ -235,15 +235,15 @@ describe('ReenableCommand', () => {
       assert.calledThrice(eventReplyStub);
       assert.calledWith(
         eventReplyStub,
-        'User reenabled! Welcome back user, please login by 00:00 UTC (within 10 hours from now) in order to prevent being disabled again.'
+        'User reenabled! Welcome back user, please login by 00:00 UTC (within 10 hours from now) in order to prevent being disabled again.',
       );
       assert.calledWith(
         eventReplyStub,
-        'To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle.'
+        'To prevent inactivity pruning from here on, you are required to visit the site within a ten week period per cycle.',
       );
       assert.calledWith(
         eventReplyStub,
-        'Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules'
+        'Reenables are a very limited service and repeat prunes will lead to permanent account closure. Please re-read the rules again: https://animebytes.tv/rules',
       );
     });
   });

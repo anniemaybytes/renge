@@ -15,7 +15,7 @@ export class QueueCommand {
       logger.debug(`User !queue request from nick ${event.nick}`);
       if (!matches[1])
         return event.reply(
-          'If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.'
+          'If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.',
         );
       if (matches[1].length > 140)
         return event.reply('Sorry, your reason is a bit too long. Mind cutting it down to 140 characters and trying again?');

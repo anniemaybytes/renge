@@ -51,11 +51,11 @@ describe('LogsCommand', () => {
       assert.calledTwice(eventReplyStub);
       assert.calledWithExactly(
         eventReplyStub.getCall(0),
-        '1. Conversation between nick1 and s\u200Bt\u200Ba\u200Bf\u200Bf\u200B1 at 2001-01-01 00:00:00 UTC: url1'
+        '1. Conversation between nick1 and s\u200Bt\u200Ba\u200Bf\u200Bf\u200B1 at 2001-01-01 00:00:00 UTC: url1',
       );
       assert.calledWithExactly(
         eventReplyStub.getCall(1),
-        '2. Conversation between nick2 and s\u200Bt\u200Ba\u200Bf\u200Bf\u200B2 at 2001-01-01 00:00:00 UTC: url2'
+        '2. Conversation between nick2 and s\u200Bt\u200Ba\u200Bf\u200Bf\u200B2 at 2001-01-01 00:00:00 UTC: url2',
       );
     });
   });

@@ -185,7 +185,7 @@ export class IRCClient {
   public static async isStaff(nick: string) {
     const whoIsResponse = await IRCClient.whois(nick);
     return IRCClient.staffHostMasks.some((hostMask) =>
-      Utils.matchIRCHostMask(hostMask, whoIsResponse.nick, whoIsResponse.ident, whoIsResponse.hostname)
+      Utils.matchIRCHostMask(hostMask, whoIsResponse.nick, whoIsResponse.ident, whoIsResponse.hostname),
     );
   }
 

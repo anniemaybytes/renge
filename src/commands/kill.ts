@@ -14,7 +14,7 @@ export class KillCommand {
       logger.debug(`Staff !kill request from nick ${event.nick}`);
       const chanLower = matches[1].toLowerCase();
       const sessions = Object.values(SessionManager.activeSupportSessions).filter(
-        (sess) => !sess.ended && sess.ircChannel.toLowerCase() === chanLower
+        (sess) => !sess.ended && sess.ircChannel.toLowerCase() === chanLower,
       );
       if (!sessions.length) {
         event.reply(`${matches[1]} is not a valid active session!`);

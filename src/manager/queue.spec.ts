@@ -181,7 +181,7 @@ describe('QueueManager', () => {
       assert.calledOnceWithExactly(
         messageStub,
         'chan',
-        'Hi nick! If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.'
+        'Hi nick! If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.',
       );
     });
 
@@ -235,7 +235,7 @@ describe('QueueManager', () => {
       assert.calledOnceWithExactly(
         messageStub,
         'chan',
-        'Hi nick, we do not allow idling in the support channel. If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.' // eslint-disable-line max-len
+        'Hi nick, we do not allow idling in the support channel. If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.', // eslint-disable-line max-len
       );
     });
 

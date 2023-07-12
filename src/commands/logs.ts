@@ -16,7 +16,7 @@ export class LogsCommand {
         event.reply(
           `${i + 1}. Conversation between ${prevLog.user} and ${Utils.space(prevLog.staff)} at ${Utils.dateToFriendlyString(prevLog.time)}: ${
             prevLog.paste
-          }`
+          }`,
         );
       });
     });

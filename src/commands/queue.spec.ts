@@ -65,7 +65,7 @@ describe('QueueCommand', () => {
       await queueCallback({ message: '!queue', reply: eventReplyStub });
       assert.calledOnceWithExactly(
         eventReplyStub,
-        'If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.'
+        'If you need your account re-enabled please type !reenable <your username>. Otherwise please enter the support queue with !queue <reason you need assistance>.',
       );
       assert.notCalled(queueUserStub);
     });

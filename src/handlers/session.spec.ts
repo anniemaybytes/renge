@@ -141,7 +141,7 @@ describe('SessionHandler', () => {
           log: ['some', 'logs'],
           time: 'time',
         },
-        cb
+        cb,
       );
       expect(session.ircChannel).to.equal('chan');
       expect(session.staffHandlerNick).to.equal('staff');
@@ -166,7 +166,7 @@ describe('SessionHandler', () => {
           log: ['some', 'logs'],
           time: 'time',
         },
-        () => ''
+        () => '',
       );
       assert.calledOnceWithExactly(listenForStaffReenableInChannelStub, 'chan');
       assert.calledOnce(addMsgHookStub);
@@ -192,7 +192,7 @@ describe('SessionHandler', () => {
           log: ['some', 'logs'],
           time: 'time',
         },
-        () => ''
+        () => '',
       );
       assert.calledOnceWithExactly(messageStub, IRCClient.supportLogChan, '\x0312chan\x03 - --- Reconnected to IRC ---');
       expect(session.log).to.deep.equal(['some', 'logs', '2001-01-31 03:12:26 UTC | --- Reconnected to IRC ---']);
@@ -588,7 +588,7 @@ describe('SessionHandler', () => {
       assert.calledOnceWithExactly(
         messageStub,
         IRCClient.supportLogChan,
-        'Support conversation in chan between nick and s\u200Bt\u200Ba\u200Bf\u200Bf complete. A log can be found at pasteURL'
+        'Support conversation in chan between nick and s\u200Bt\u200Ba\u200Bf\u200Bf complete. A log can be found at pasteURL',
       );
     });
 
@@ -598,7 +598,7 @@ describe('SessionHandler', () => {
       assert.calledOnceWithExactly(
         messageStub,
         IRCClient.supportLogChan,
-        'Support conversation in chan between nick and s\u200Bt\u200Ba\u200Bf\u200Bf complete. I could not properly upload the logs, but they should be saved locally.'
+        'Support conversation in chan between nick and s\u200Bt\u200Ba\u200Bf\u200Bf complete. I could not properly upload the logs, but they should be saved locally.',
       );
     });
 

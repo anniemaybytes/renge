@@ -138,7 +138,7 @@ export class SessionHandler {
       IRCClient.notice(this.staffHandlerNick, `Starting support session for ${this.userClientNick} in ${this.ircChannel}, user IP: ${userIP}`);
       // Start log. Note this also saves this session to state
       await this.logMsg(
-        `Beginning support conversation between ${this.userClientNick} and ${this.staffHandlerNick} in ${this.ircChannel}. Reason: ${this.reason}`
+        `Beginning support conversation between ${this.userClientNick} and ${this.staffHandlerNick} in ${this.ircChannel}. Reason: ${this.reason}`,
       );
       // Join the staff and user to the session channel
       await IRCClient.joinUserToChannel(this.ircChannel, this.staffHandlerNick);
@@ -151,7 +151,7 @@ export class SessionHandler {
       if (announce) {
         IRCClient.message(
           IRCClient.userSupportChan,
-          `Now helping ${this.userClientNick}.${QueueManager.queue.length ? ` Next in queue: ${QueueManager.queue[0].nick}` : ''}`
+          `Now helping ${this.userClientNick}.${QueueManager.queue.length ? ` Next in queue: ${QueueManager.queue[0].nick}` : ''}`,
         );
       }
     } catch (e) {
@@ -167,8 +167,8 @@ export class SessionHandler {
         IRCClient.supportLogChan,
         `${Utils.getIRCColorFunc(this.color)(this.ircChannel)} - ${msg.replace(
           new RegExp(this.staffHandlerNick, 'gi'),
-          Utils.space(this.staffHandlerNick)
-        )}`
+          Utils.space(this.staffHandlerNick),
+        )}`,
       );
     } catch (e) {
       logger.warn('Unable to send message to log channel');
@@ -208,7 +208,7 @@ export class SessionHandler {
             .randomBytes(32)
             .toString('base64')
             .replace(/\/|\+|=/g, '')
-            .substring(0, 16)
+            .substring(0, 16),
         );
         SessionHandler.previousLogs.push({
           user: this.userClientNick,
@@ -232,7 +232,7 @@ export class SessionHandler {
           IRCClient.supportLogChan,
           `Support conversation in ${this.ircChannel} between ${this.userClientNick} and ${Utils.space(this.staffHandlerNick)} complete. ${
             pasteURL ? `A log can be found at ${pasteURL}` : 'I could not properly upload the logs, but they should be saved locally.'
-          }`
+          }`,
         );
       } catch (e) {
         logger.error(`Error sending message to log channel: ${e}`);
