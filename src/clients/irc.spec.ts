@@ -435,7 +435,7 @@ describe('IRCClient', () => {
   describe('handleUserList', () => {
     it('Set channel state with new nicks', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['oldnick']) });
-      await IRCClient.handleUserList('chan', [{ nick: 'newnick1' }, { nick: 'newnick2' }]);
+      IRCClient.handleUserList('chan', [{ nick: 'newnick1' }, { nick: 'newnick2' }]);
       expect(IRCClient.channelState['chan'].has('oldnick')).to.be.false;
       expect(IRCClient.channelState['chan'].has('newnick1')).to.be.true;
       expect(IRCClient.channelState['chan'].has('newnick2')).to.be.true;
@@ -446,7 +446,7 @@ describe('IRCClient', () => {
     it('Updates nicks in channel state', async () => {
       sandbox.replace(IRCClient, 'channelState', { chan: new Set(['oldnick']) });
       sandbox.replace(IRCClient, 'renameHandlers', new Set() as RenameHandler);
-      await IRCClient.handleUserNewNick('oldnick', 'newnick');
+      IRCClient.handleUserNewNick('oldnick', 'newnick');
       expect(IRCClient.channelState['chan'].has('oldnick')).to.be.false;
       expect(IRCClient.channelState['chan'].has('newnick')).to.be.true;
     });
@@ -455,7 +455,7 @@ describe('IRCClient', () => {
       const myCallback = sandbox.stub();
       sandbox.replace(IRCClient, 'channelState', {});
       sandbox.replace(IRCClient, 'renameHandlers', new Set([myCallback]));
-      await IRCClient.handleUserNewNick('oldNick', 'newNick');
+      IRCClient.handleUserNewNick('oldNick', 'newNick');
       assert.calledOnceWithExactly(myCallback, 'oldNick', 'newNick');
     });
   });

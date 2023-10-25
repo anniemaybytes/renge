@@ -38,7 +38,7 @@ describe('KillCommand', () => {
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await killCallback({ message: 'badMessage', reply: eventReplyStub });
+      await killCallback({ message: 'bad message', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
     });
 
@@ -56,7 +56,7 @@ describe('KillCommand', () => {
 
     it('Responds with error if ending session fails', async () => {
       SessionManager.activeSupportSessions['chan'] = fakeSession;
-      fakeSession.endSession.throws('err');
+      fakeSession.endSession.throws(new Error('Some error message'));
       await killCallback({ message: '!kill chan', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, 'There was an unexpected error killing the session. Please try again');
     });

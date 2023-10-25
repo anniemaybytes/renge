@@ -86,7 +86,7 @@ describe('ReenableCommand', () => {
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await reenableCallback({ message: 'badMessage', reply: eventReplyStub });
+      await reenableCallback({ message: 'bad message', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
       assert.notCalled(reenableUserStub);
       assert.notCalled(queueUserStub);
@@ -118,7 +118,7 @@ describe('ReenableCommand', () => {
     });
 
     it('Responds with error if AB call fails', async () => {
-      reenableUserStub.throws('err');
+      reenableUserStub.throws(new Error('Some error message'));
       await reenableCallback({ message: '!reenable user', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, 'Your account could not be reenabled for technical reasons. Please try again.');
     });
@@ -188,7 +188,7 @@ describe('ReenableCommand', () => {
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await reenableCallback({ message: 'badMessage', reply: eventReplyStub });
+      await reenableCallback({ message: 'bad message', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
       assert.notCalled(reenableStaffStub);
       assert.notCalled(isStaffStub);
@@ -196,7 +196,7 @@ describe('ReenableCommand', () => {
 
     it('Does not respond if not staff', async () => {
       isStaffStub.resolves(false);
-      await reenableCallback({ message: '!reenable user', hostname: 'staffuser', reply: eventReplyStub });
+      await reenableCallback({ message: '!reenable user', hostname: 'notstaffuser', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
       assert.notCalled(reenableStaffStub);
     });
@@ -207,7 +207,7 @@ describe('ReenableCommand', () => {
     });
 
     it('Responds with error if AB call fails', async () => {
-      reenableStaffStub.throws('err');
+      reenableStaffStub.throws(new Error('Some error message'));
       await reenableCallback({ message: '!reenable user', hostname: 'staffuser', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, 'Account could not be reenabled for technical reasons. Please try again.');
     });

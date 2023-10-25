@@ -45,7 +45,7 @@ describe('IPCommand', () => {
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await ipCallback({ message: 'badMessage', reply: eventReplyStub });
+      await ipCallback({ message: 'bad message', reply: eventReplyStub });
       assert.notCalled(whoisStub);
       assert.notCalled(eventReplyStub);
       assert.notCalled(noticeStub);
@@ -74,7 +74,7 @@ describe('IPCommand', () => {
     });
 
     it('Responds with an error if unexpected error', async () => {
-      whoisStub.throws('err');
+      whoisStub.throws(new Error('Some error message'));
       await ipCallback({ message: '!ip nick', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, 'An internal error has occured, please notify sysop');
     });

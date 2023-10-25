@@ -55,7 +55,7 @@ describe('UnqueueCommand', () => {
     });
 
     it('Responds appropriately if unsuccessfully unqueued', async () => {
-      unqueueUserStub.throws('err');
+      unqueueUserStub.throws(new Error('Some error message'));
       await unqueueCallback({ nick: 'nick', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, "You're not in the queue!");
     });
@@ -76,7 +76,7 @@ describe('UnqueueCommand', () => {
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await unqueueCallback({ message: 'badMessage', reply: eventReplyStub });
+      await unqueueCallback({ message: 'bad message', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
       assert.notCalled(unqueueUserStub);
       assert.notCalled(addUnqueuedUserStub);
@@ -115,9 +115,9 @@ describe('UnqueueCommand', () => {
     });
 
     it('Responds appropriately if unsuccessfully unqueued', async () => {
-      unqueueUserStub.throws('err');
+      unqueueUserStub.throws({ name: 'Error', message: 'Stub error message for testing purposes' });
       await unqueueCallback({ message: '!unqueue 2', reply: eventReplyStub });
-      assert.calledOnceWithExactly(eventReplyStub, 'err');
+      assert.calledOnceWithExactly(eventReplyStub, 'Stub error message for testing purposes');
     });
   });
 });

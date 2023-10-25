@@ -42,21 +42,21 @@ describe('QueueCommand', () => {
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await queueCallback({ message: 'badMessage', reply: eventReplyStub });
+      await queueCallback({ message: 'bad message', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
       assert.notCalled(queueUserStub);
     });
 
     it('Does not respond if user is staff', async () => {
       isStaffStub.resolves(true);
-      await queueCallback({ message: 'badMessage', reply: eventReplyStub });
+      await queueCallback({ message: '!queue', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
       assert.notCalled(queueUserStub);
     });
 
     it('Does not respond if user is channel OP', async () => {
       isOpStub.resolves(true);
-      await queueCallback({ message: 'badMessage', reply: eventReplyStub });
+      await queueCallback({ message: '!queue', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
       assert.notCalled(queueUserStub);
     });
@@ -81,25 +81,25 @@ describe('QueueCommand', () => {
     });
 
     it('Queues user with correct parameters', async () => {
-      await queueCallback({ message: '!queue  my reason', nick: 'someone', reply: eventReplyStub });
+      await queueCallback({ message: '!queue my reason', nick: 'someone', reply: eventReplyStub });
       assert.calledOnceWithExactly(queueUserStub, 'someone', 'my reason');
     });
 
     it('Replies appropriately if newly queued', async () => {
       queueUserStub.resolves(true);
-      await queueCallback({ message: '!queue  my reason', reply: eventReplyStub });
+      await queueCallback({ message: '!queue my reason', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, "You've been added to the queue!");
     });
 
     it('Replies appropriately if already queued', async () => {
       queueUserStub.resolves(false);
-      await queueCallback({ message: '!queue  my reason', reply: eventReplyStub });
+      await queueCallback({ message: '!queue my reason', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, "You're already in the queue! If you'd like to leave just type !unqueue or part the channel.");
     });
 
     it('Replies with an error if the queueing fails', async () => {
-      queueUserStub.throws('err');
-      await queueCallback({ message: '!queue  my reason', reply: eventReplyStub });
+      queueUserStub.throws(new Error('Some error message'));
+      await queueCallback({ message: '!queue my reason', reply: eventReplyStub });
       assert.calledOnceWithExactly(eventReplyStub, 'An error has occured, please try again later');
     });
   });

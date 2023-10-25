@@ -39,7 +39,7 @@ describe('HandleCommand', () => {
     });
 
     it('Does not respond if it fails to match the regex', async () => {
-      await handleCallback({ message: 'badMessage', reply: eventReplyStub });
+      await handleCallback({ message: 'bad message', reply: eventReplyStub });
       assert.notCalled(eventReplyStub);
       assert.notCalled(startSupportSessionStub);
     });
@@ -50,9 +50,9 @@ describe('HandleCommand', () => {
     });
 
     it('Responds with error if there was a failure to start a new support session when manually specifying nick and reason', async () => {
-      startSupportSessionStub.throws('err');
+      startSupportSessionStub.throws({ name: 'Error', message: 'Stub error message for testing purposes' });
       await handleCallback({ message: '!handle nick reason', reply: eventReplyStub });
-      assert.calledOnceWithExactly(eventReplyStub, 'err');
+      assert.calledOnceWithExactly(eventReplyStub, 'Stub error message for testing purposes');
     });
 
     it('Responds with help if position specified is not a valid number', async () => {

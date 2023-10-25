@@ -13,7 +13,7 @@ export class ReenableCommand {
   private static regex = /^!reenable\s+(\S+)(?:\s+(\S.*))?/i;
   private static failLockoutThreshold = 5;
   // Public for testing
-  public static sweeper?: NodeJS.Timer = undefined;
+  public static sweeper?: ReturnType<typeof setInterval> = undefined;
   public static errorCache: { [userHost: string]: { fails: number; last: Date } } = {};
 
   private static userReenableMessages(username: string) {

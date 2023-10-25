@@ -31,7 +31,7 @@ describe('SessionHandler', () => {
     });
 
     it('Throws error if db get fails for session keys', async () => {
-      mockDBGet.throws('err');
+      mockDBGet.throws(new Error('Some error message'));
       try {
         await SessionHandler.initPreviousLogs();
       } catch (e) {
@@ -424,7 +424,7 @@ describe('SessionHandler', () => {
     });
 
     it('Throws an internal error if something goes wrong', async () => {
-      joinUserToChannelStub.throws('err');
+      joinUserToChannelStub.throws(new Error('Some error message'));
       try {
         await session.startNewSession('ip', false);
       } catch (e) {
@@ -461,7 +461,7 @@ describe('SessionHandler', () => {
     });
 
     it('Does not throw if failure to send message to log channel', async () => {
-      messageStub.throws('err');
+      messageStub.throws(new Error('Some error message'));
       await session.logMsg('msg');
     });
   });
@@ -554,7 +554,7 @@ describe('SessionHandler', () => {
     });
 
     it('Does not throw if writing to file fails', async () => {
-      sandbox.stub(fs.promises, 'writeFile').throws('err');
+      sandbox.stub(fs.promises, 'writeFile').throws(new Error('Some error message'));
       await session.endSession();
     });
 
@@ -579,7 +579,7 @@ describe('SessionHandler', () => {
     });
 
     it('Does not throw if writing to DB fails', async () => {
-      putStub.throws('err');
+      putStub.throws(new Error('Some error message'));
       await session.endSession();
     });
 
@@ -593,7 +593,7 @@ describe('SessionHandler', () => {
     });
 
     it('Sends end message without paste url in log channel if paste upload failed', async () => {
-      createPasteStub.throws('err');
+      createPasteStub.throws(new Error('Some error message'));
       await session.endSession();
       assert.calledOnceWithExactly(
         messageStub,
@@ -603,7 +603,7 @@ describe('SessionHandler', () => {
     });
 
     it('Does not throw if messaging log channel fails', async () => {
-      messageStub.throws('err');
+      messageStub.throws(new Error('Some error message'));
       await session.endSession();
     });
 
@@ -630,7 +630,7 @@ describe('SessionHandler', () => {
 
     it('Does not throw if callback errors', async () => {
       const fakeCB = sandbox.stub();
-      fakeCB.throws('err');
+      fakeCB.throws(new Error('Some error message'));
       session.cleanupCallbacks = new Set([fakeCB]);
       await session.endSession();
     });
@@ -641,7 +641,7 @@ describe('SessionHandler', () => {
     });
 
     it('Does not throw if deleting from state fails', async () => {
-      deleteStub.throws('err');
+      deleteStub.throws(new Error('Some error message'));
       await session.endSession();
     });
 

@@ -60,7 +60,7 @@ describe('QueueManager', () => {
     });
 
     it('Throws if there was an error loading from the db', async () => {
-      mockDBGet.throws('err');
+      mockDBGet.throws(new Error('Some error message'));
       try {
         await QueueManager.start();
       } catch (e) {

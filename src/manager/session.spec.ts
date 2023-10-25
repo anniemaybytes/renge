@@ -41,7 +41,7 @@ describe('SessionManager', () => {
     });
 
     it('Throws error if db get fails for session keys', async () => {
-      mockDBGet.throws('err');
+      mockDBGet.throws(new Error('Some error message'));
       try {
         await SessionManager.start();
       } catch (e) {
@@ -64,7 +64,7 @@ describe('SessionManager', () => {
 
     it('Throws error if db get fails for session', async () => {
       mockDBGet.onFirstCall().returns(['key1']);
-      mockDBGet.onSecondCall().throws('err');
+      mockDBGet.onSecondCall().throws(new Error('Some error message'));
       try {
         await SessionManager.start();
       } catch (e) {
@@ -132,7 +132,7 @@ describe('SessionManager', () => {
     });
 
     it('Calls endSession and throws an error without saving state if starting new session fails', async () => {
-      mockSession.startNewSession.throws('err');
+      mockSession.startNewSession.throws(new Error('Some error message'));
       try {
         await SessionManager.startSupportSession('nick', 'staff', true, 'reason', 'ip');
       } catch (e) {
@@ -150,7 +150,7 @@ describe('SessionManager', () => {
     });
 
     it('Throws an error if saving fails', async () => {
-      saveStateStub.throws('err');
+      saveStateStub.throws(new Error('Some error message'));
       try {
         await SessionManager.startSupportSession('nick', 'staff', true, 'reason', 'ip');
       } catch (e) {
