@@ -9,9 +9,11 @@ import { ABClient } from '../clients/animebytes.js';
 import { QueueManager } from '../manager/queue.js';
 import { ReenableCommand } from '../commands/reenable.js';
 import { Utils } from '../utils.js';
-import { PreviousLog } from '../types.js';
+import type { PreviousLog, DetailedIpInfo } from '../types.js';
 
 import { Logger } from '../logger.js';
+import { RequestError } from 'got';
+import { error } from 'console';
 const logger = Logger.get('SessionHandler');
 
 const PreviousSessionLogsKey = 'sessions::previousLogs';
@@ -153,6 +155,17 @@ export class SessionHandler {
           IRCClient.userSupportChan,
           `Now helping ${this.userClientNick}.${QueueManager.queue.length ? ` Next in queue: ${QueueManager.queue[0].nick}` : ''}`,
         );
+      }
+      try{
+        const ipResponse: Response = await fetch(`http://ip-api.com/json/${userIP}?fields=16924674`);
+        const ipData: DetailedIpInfo = await ipResponse.json();
+        if(ipData.status !== "success"){
+          throw new Error(`The request failed with message ${ipData.message}`);
+        }
+        IRCClient.notice(this.staffHandlerNick, `${this.userClientNick} with IP: ${userIP}. Country code: ${ipData.countryCode}. Hosting: ${ipData.hosting || ipData.proxy}`);
+      }
+      catch(err){
+        logger.error(`There was an error getting detailed IP information: ${err}`);
       }
     } catch (e) {
       logger.error(`Unexpected error starting new support session: ${e}`);
