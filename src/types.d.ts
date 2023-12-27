@@ -75,6 +75,14 @@ export interface ChannelState {
   [channel: string]: Set<string>;
 }
 
+export interface DetailedIpInfo {
+  status: "success" | "fail",
+  countryCode: string,
+  proxy: boolean,
+  hosting: boolean,
+  message: string,
+}
+
 export type JoinHandler = Set<(nick: string, channel: string) => any>;
 export type LeaveHandler = Set<(nick: string, channel: string, leaveType: 'kicked' | 'parted' | 'quit') => any>;
 export type DisconnectHandler = Set<() => any>;
