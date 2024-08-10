@@ -63,7 +63,7 @@ describe('QueueManager', () => {
       mockDBGet.throws(new Error('Some error message'));
       try {
         await QueueManager.start();
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');
@@ -325,7 +325,7 @@ describe('QueueManager', () => {
       QueueManager.queue = [];
       try {
         await QueueManager.unqueueUserByPosition();
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');
@@ -334,7 +334,7 @@ describe('QueueManager', () => {
     it('Throws an error if fetching a position larger than the queue', async () => {
       try {
         await QueueManager.unqueueUserByPosition(99);
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');
@@ -369,7 +369,7 @@ describe('QueueManager', () => {
     it('Throws an error if fetching a nick not in the queue and not ignoring', async () => {
       try {
         await QueueManager.unqueueUserByNick('badnick', false);
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');

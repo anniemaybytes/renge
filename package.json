@@ -5,6 +5,7 @@
   "engines": {
     "node": ">=18.12.0"
   },
+  "type": "module",
   "scripts": {
     "start-dev": "TS_NODE_FILES=true node --no-warnings --loader ts-node/esm src/index.ts --project tsconfig.json",
     "build": "rm -rf dist/ && tsc",
@@ -27,26 +28,25 @@
     "tslib": "2.6.3"
   },
   "devDependencies": {
-    "@types/chai": "4.3.16",
+    "@types/chai": "4.3.17",
     "@types/mocha": "10.0.7",
     "@types/mock-fs": "4.13.4",
-    "@types/node": "20.14.11",
+    "@types/node": "20.14.14",
     "@types/sinon": "17.0.3",
-    "@typescript-eslint/eslint-plugin": "7.16.1",
-    "@typescript-eslint/parser": "7.16.1",
+    "@typescript-eslint/eslint-plugin": "8.0.1",
+    "@typescript-eslint/parser": "8.0.1",
     "c8": "10.1.2",
     "chai": "5.1.1",
     "eslint": "8.57.0",
     "eslint-config-prettier": "9.1.0",
-    "mocha": "10.6.0",
+    "mocha": "10.7.0",
     "mock-fs": "5.2.0",
     "npm-run-all2": "6.2.2",
     "prettier": "3.3.3",
     "sinon": "18.0.0",
     "ts-node": "10.9.2",
-    "typescript": "5.5.3"
+    "typescript": "5.5.4"
   },
-  "type": "module",
   "c8": {
     "include": [
       "src/**/*.ts"
@@ -90,6 +90,14 @@
           "code": 200
         }
       ]
-    }
+    },
+    "overrides": [
+      {
+        "files": ["*.spec.ts"],
+        "rules": {
+          "@typescript-eslint/no-unused-expressions": "off"
+        }
+      }
+    ]
   }
 }

@@ -37,7 +37,7 @@ describe('IRCClient', () => {
       sandbox.replace(IRCClient, 'registered', false);
       try {
         IRCClient.checkIfRegistered();
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');

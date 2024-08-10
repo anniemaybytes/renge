@@ -44,7 +44,7 @@ describe('SessionManager', () => {
       mockDBGet.throws(new Error('Some error message'));
       try {
         await SessionManager.start();
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');
@@ -67,7 +67,7 @@ describe('SessionManager', () => {
       mockDBGet.onSecondCall().throws(new Error('Some error message'));
       try {
         await SessionManager.start();
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');
@@ -107,7 +107,7 @@ describe('SessionManager', () => {
       SessionManager.activeSupportSessions = { chan: {} as any };
       try {
         await SessionManager.startSupportSession('nick', 'staff', true, 'reason', 'ip');
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');
@@ -135,7 +135,7 @@ describe('SessionManager', () => {
       mockSession.startNewSession.throws(new Error('Some error message'));
       try {
         await SessionManager.startSupportSession('nick', 'staff', true, 'reason', 'ip');
-      } catch (e) {
+      } catch {
         assert.calledOnce(mockSession.endSession);
         assert.notCalled(saveStateStub);
         return;
@@ -153,7 +153,7 @@ describe('SessionManager', () => {
       saveStateStub.throws(new Error('Some error message'));
       try {
         await SessionManager.startSupportSession('nick', 'staff', true, 'reason', 'ip');
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');

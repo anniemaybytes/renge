@@ -34,7 +34,7 @@ describe('SessionHandler', () => {
       mockDBGet.throws(new Error('Some error message'));
       try {
         await SessionHandler.initPreviousLogs();
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');

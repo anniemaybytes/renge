@@ -14,7 +14,7 @@ export class UnqueueCommand {
         await QueueManager.unqueueUserByNick(event.nick, false);
         QueueManager.addUnqueuedUser(event.nick);
         return event.reply("You've been removed from the queue!");
-      } catch (e) {
+      } catch {
         return event.reply("You're not in the queue!");
       }
     });

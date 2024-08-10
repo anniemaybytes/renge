@@ -170,7 +170,7 @@ export class SessionHandler {
           Utils.space(this.staffHandlerNick),
         )}`,
       );
-    } catch (e) {
+    } catch {
       logger.warn('Unable to send message to log channel');
     }
     await this.saveToState();

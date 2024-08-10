@@ -87,7 +87,7 @@ describe('ABClient', () => {
       makeRequestStub.resolves({ success: false });
       try {
         await ABClient.createPaste('name', 'contents', 'pass');
-      } catch (e) {
+      } catch {
         return;
       }
       return expect.fail('Did not throw');
@@ -143,7 +143,7 @@ describe('ABClient', () => {
       });
       try {
         await ABClient.makeRequest('/myPath', {});
-      } catch (e) {
+      } catch {
         return;
       }
       expect.fail('Did not throw');
