@@ -75,8 +75,8 @@ describe('SessionHandler', () => {
     });
 
     it('Returns a session with correct properties set from input', () => {
-      const date = new Date();
-      sandbox.useFakeTimers(date);
+      const fakeTime = new Date();
+      sandbox.useFakeTimers({ now: fakeTime, toFake: ['Date'] });
       const cb = () => '';
       const session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', cb);
       expect(session.ircChannel).to.equal('chan');
@@ -84,7 +84,7 @@ describe('SessionHandler', () => {
       expect(session.userClientNick).to.equal('nick');
       expect(session.reason).to.equal('reason');
       expect(session.log).to.deep.equal([]);
-      expect(session.startTime).to.equal(date.toISOString());
+      expect(session.startTime).to.equal(fakeTime.toISOString());
       expect(session.color).to.equal('blue');
       expect(session.ended).to.be.false;
       expect(session.started).to.be.false;
@@ -180,7 +180,7 @@ describe('SessionHandler', () => {
     });
 
     it('Logs a reconnect message if connected to IRC', async () => {
-      sandbox.useFakeTimers(new Date('2001-01-31T03:12:26.123Z'));
+      sandbox.useFakeTimers({ now: new Date('2001-01-31T03:12:26.123Z'), toFake: ['Date'] });
       IRCClient.joined = true;
       const session = await SessionHandler.fromState(
         {
@@ -447,8 +447,8 @@ describe('SessionHandler', () => {
     });
 
     it('Adds to log and saves to state', async () => {
-      const date = new Date('2001-09-12T18:58:43.123Z');
-      sandbox.useFakeTimers(date);
+      const fakeTime = new Date('2001-09-12T18:58:43.123Z');
+      sandbox.useFakeTimers({ now: fakeTime, toFake: ['Date'] });
       await session.logMsg('msg');
       expect(session.log).to.deep.equal(['2001-09-12 18:58:43 UTC | msg']);
       assert.calledOnce(saveStub);
@@ -511,7 +511,7 @@ describe('SessionHandler', () => {
     let deleteStub: SinonStub;
     const fakeTime = new Date('2000-01-01T00:00:00.000Z');
     beforeEach(() => {
-      sandbox.useFakeTimers(fakeTime);
+      sandbox.useFakeTimers({ now: fakeTime, toFake: ['Date'] });
       session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       session.started = true;
       sandbox.stub(IRCClient, 'isMe').returns(false);
@@ -656,7 +656,7 @@ describe('SessionHandler', () => {
     let dbPutStub: SinonStub;
     const fakeTime = new Date();
     beforeEach(() => {
-      sandbox.useFakeTimers(fakeTime);
+      sandbox.useFakeTimers({ now: fakeTime, toFake: ['Date'] });
       session = SessionHandler.newSession('chan', 'staff', 'nick', 'reason', () => '');
       dbPutStub = sandbox.stub(LevelDB, 'put');
     });

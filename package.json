@@ -1,9 +1,9 @@
 {
   "name": "renge",
-  "version": "5.0.1",
+  "version": "6.0.0",
   "author": "AnimeBytes",
   "engines": {
-    "node": ">=18.12.0"
+    "node": ">=20.9.0"
   },
   "type": "module",
   "scripts": {
@@ -20,7 +20,7 @@
     "chalk": "5.3.0",
     "got": "13.0.0",
     "irc-colors": "1.5.0",
-    "irc-framework": "4.13.1",
+    "irc-framework": "4.14.0",
     "level": "8.0.1",
     "loglevel": "1.9.2",
     "loglevel-plugin-prefix": "0.8.4",
@@ -28,24 +28,24 @@
     "tslib": "2.7.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.19",
-    "@types/mocha": "10.0.8",
+    "@types/chai": "5.0.0",
+    "@types/mocha": "10.0.9",
     "@types/mock-fs": "4.13.4",
-    "@types/node": "20.16.5",
+    "@types/node": "20.16.11",
     "@types/sinon": "17.0.3",
-    "@typescript-eslint/eslint-plugin": "8.6.0",
-    "@typescript-eslint/parser": "8.6.0",
+    "@typescript-eslint/eslint-plugin": "8.8.1",
+    "@typescript-eslint/parser": "8.8.1",
     "c8": "10.1.2",
     "chai": "5.1.1",
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
     "mocha": "10.7.3",
-    "mock-fs": "5.2.0",
+    "mock-fs": "5.3.0",
     "npm-run-all2": "6.2.3",
     "prettier": "3.3.3",
-    "sinon": "18.0.1",
+    "sinon": "19.0.2",
     "ts-node": "10.9.2",
-    "typescript": "5.6.2"
+    "typescript": "5.6.3"
   },
   "c8": {
     "include": [

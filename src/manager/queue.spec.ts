@@ -296,11 +296,11 @@ describe('QueueManager', () => {
     });
 
     it('Pushes user to queue with correct parameters and saves to state', async () => {
-      const fakeDate = new Date();
-      sandbox.useFakeTimers(fakeDate);
+      const fakeTime = new Date();
+      sandbox.useFakeTimers({ now: fakeTime, toFake: ['Date'] });
       await QueueManager.queueUser('nick', 'reason');
       assert.calledOnceWithExactly(mockWhoIs, 'nick');
-      expect(QueueManager.queue).to.deep.equal([{ nick: 'nick', reason: 'reason', time: fakeDate, ip: 'ip' }]);
+      expect(QueueManager.queue).to.deep.equal([{ nick: 'nick', reason: 'reason', time: fakeTime, ip: 'ip' }]);
       assert.calledOnceWithExactly(mockDBPut, 'queue::queuedUsers', QueueManager.queue);
     });
 

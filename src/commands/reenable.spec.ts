@@ -35,9 +35,9 @@ describe('ReenableCommand', () => {
     });
 
     it('Retrieves and sets error cache from state', async () => {
-      const fakeDate = new Date('2020-02-02T02:02:02.000Z');
-      sandbox.useFakeTimers(fakeDate);
-      getStub.resolves({ userHost: { fails: 3, last: fakeDate.toJSON() } });
+      const fakeTime = new Date('2020-02-02T02:02:02.000Z');
+      sandbox.useFakeTimers({ now: fakeTime, toFake: ['Date'] });
+      getStub.resolves({ userHost: { fails: 3, last: fakeTime.toJSON() } });
       await ReenableCommand.register();
       expect(ReenableCommand.errorCache).to.haveOwnProperty('userHost');
     });
@@ -124,13 +124,13 @@ describe('ReenableCommand', () => {
     });
 
     it('Saves error in cache if AB failure to reenable and should not queue', async () => {
-      const fakeDate = new Date();
-      sandbox.useFakeTimers(fakeDate);
+      const fakeTime = new Date();
+      sandbox.useFakeTimers({ now: fakeTime, toFake: ['Date'] });
       const abErrorMsg = 'user does not exist';
       reenableUserStub.resolves({ success: false, error: abErrorMsg });
       await reenableCallback({ message: '!reenable user', ident: 'ident', hostname: 'host', reply: eventReplyStub });
       expect(ReenableCommand.errorCache?.identhost?.fails).to.equal(1);
-      expect(ReenableCommand.errorCache?.identhost?.last?.getTime()).to.equal(fakeDate.getTime());
+      expect(ReenableCommand.errorCache?.identhost?.last?.getTime()).to.equal(fakeTime.getTime());
     });
 
     it('Responds with error from AB if failure to reenable and should not queue', async () => {
@@ -141,7 +141,7 @@ describe('ReenableCommand', () => {
     });
 
     it('Responds with reenable message if successfully reenabled', async () => {
-      sandbox.useFakeTimers(new Date('2001-04-12T13:32:01.913Z'));
+      sandbox.useFakeTimers({ now: new Date('2001-04-12T13:32:01.913Z'), toFake: ['Date'] });
       reenableUserStub.resolves({ success: true });
       await reenableCallback({ message: '!reenable user', reply: eventReplyStub });
       assert.calledThrice(eventReplyStub);
@@ -229,7 +229,7 @@ describe('ReenableCommand', () => {
       ReenableCommand.inChannel('supportsessionchan');
       reenableCallback = hookStub.getCall(1).args[2];
 
-      sandbox.useFakeTimers(new Date('2001-04-12T13:32:01.913Z'));
+      sandbox.useFakeTimers({ now: new Date('2001-04-12T13:32:01.913Z'), toFake: ['Date'] });
       reenableStaffStub.resolves({ success: true });
       await reenableCallback({ message: '!reenable user', hostname: 'staffuser', reply: eventReplyStub });
       assert.calledThrice(eventReplyStub);

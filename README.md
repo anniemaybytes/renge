@@ -28,7 +28,7 @@ It supports the following commands for staff:
 
 ## Installation
 
-renge requires NodeJS v18.12 or later and [Yarn package manager](https://classic.yarnpkg.com/).
+renge requires NodeJS v20.9 or later and [Yarn package manager](https://classic.yarnpkg.com/).
 
 ```sh
 yarn --frozen-lockfile && yarn build

@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v6.0.0
+### Changed
+- Bumped minimum supported Node version to v20.9.0
+
 ## v5.0.1
 ### Changed
 - Fix Node v16 being used in Dockerfile

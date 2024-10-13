@@ -113,7 +113,7 @@ describe('QueueCommand', () => {
       queueCallback = hookStub.getCall(1).args[2];
 
       eventReplyStub = sandbox.stub();
-      sandbox.useFakeTimers(new Date('1999-01-01T05:30:00.001Z'));
+      sandbox.useFakeTimers({ now: new Date('1999-01-01T05:30:00.001Z'), toFake: ['Date'] });
     });
 
     it('Replies appropriately with an empty queue', async () => {
