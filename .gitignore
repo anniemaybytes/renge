@@ -37,6 +37,7 @@ dist/
 .DS_Store
 desktop.ini
 .direnv
+.env
 
 # Application/Config
 config.json

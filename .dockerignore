@@ -26,7 +26,7 @@ node_modules/
 # Built TS
 dist/
 
-# ide
+# IDEs
 .idea
 *.swp
 .vscode
@@ -40,7 +40,7 @@ desktop.ini
 # Repository Metadata
 .gitignore
 .git
-.drone.yml
+.forgejo/
 .editorconfig
 renovate.json
 
