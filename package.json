@@ -1,6 +1,6 @@
 {
   "name": "renge",
-  "version": "7.0.0",
+  "version": "7.1.0",
   "author": "AnimeBytes",
   "engines": {
     "node": ">=22.11.0"

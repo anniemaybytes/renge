@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## v7.1.0
+### Changed
+- Use `pnpm` instead of `yarn`
+- Use `slim` (instead of `alpine`) Node images for official container
+
 ## v7.0.0
 ### Changed
 - Bumped minimum supported Node version to v22.11.0
