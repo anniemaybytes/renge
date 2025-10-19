@@ -7,6 +7,7 @@ const QueueKey = 'queue::queuedUsers';
 
 export class QueueManager {
   public static queue: QueuedUser[] = [];
+  // eslint-disable-next-line no-undef
   public static unqueuedUsers: { [lowerNick: string]: NodeJS.Timeout } = {};
 
   private static isUserSupportChannel(chan: string) {

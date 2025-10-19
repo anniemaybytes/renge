@@ -250,7 +250,6 @@ describe('ReenableCommand', () => {
 
   describe('shutDown', () => {
     it('Erases sweeper interval', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       const fakeInterval = setInterval(() => {}, 100);
       sandbox.replace(ReenableCommand, 'sweeper', fakeInterval);
       ReenableCommand.shutDown();
